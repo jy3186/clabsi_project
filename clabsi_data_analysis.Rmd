@@ -1,0 +1,61 @@
+---
+title: "clabsi_data_analysis"
+author: "Jiayi Yang"
+date: "2022-10-04"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(readxl)
+library(lubridate)
+```
+
+Importing and tidying CLABSI data
+
+```{r}
+central_lined_df =
+  read_excel("./CLABSI_data.xlsx", sheet = 1, range = cell_cols("A:G")) %>% 
+  arrange(EMPI) %>% 
+  select(EMPI, ordering_date) %>% 
+mutate(
+  status = "central_lined"
+)
+central_lined_df
+```
+Bloodstream Infectious
+```{r}
+bcp_df =
+  read_excel("./CLABSI_data.xlsx", sheet = 3, range = cell_cols("A:J")) %>% 
+  arrange(EMPI) %>% 
+  select(EMPI, PROC_NAME, RESULT_TIME) %>% 
+  filter(PROC_NAME == "BLOOD CULTURE") %>% 
+mutate(
+  status = "blood_culture_positive"
+)
+bcp_df
+```
+
+
+TPN data
+```{r}
+tpn_df =
+   read_excel("./CLABSI_data.xlsx", sheet = 4, range = cell_cols("A:K")) %>% 
+  arrange(EMPI) %>% 
+  select(EMPI, START_DATE, END_DATE) %>% 
+  mutate(
+    status = "tpn"
+  )
+tpn_df
+```
+
+Trying to join central_lined_df and tpn_df to see patients who are cl inserted and tpn 
+```{r}
+join_cl_tpn =
+  left_join(central_lined_df, tpn_df, by = "EMPI") %>% 
+  drop_na() %>% 
+   filter(!is.na("status"))
+join_cl_tpn
+```
+
+## R Markdown
