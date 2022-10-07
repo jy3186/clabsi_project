@@ -12,7 +12,7 @@ library(lubridate)
 library(dplyr)
 ```
 
-Importing and tidying CLABSI data, keeping duplicative appeared patients only once
+Importing and tidying CLABSI data, keeping duplicative dates appeared patients only once
 
 ```{r}
 central_lined_df =
@@ -31,6 +31,8 @@ mutate(
 
 central_lined_df
 ```
+We have `r nrow(central_lined_df)` patients who have central lines inserted in our sample
+
 Bloodstream Infectious importing and cleaning
 ```{r}
 bcp_df =
@@ -45,9 +47,10 @@ bcp_df =
   distinct(EMPI, date, .keep_all = TRUE)
 bcp_df
 ```
-See if result_time of BCP aligns with central line insert period.
 
+We have `r nrow(bcp_df)` patients who have blood culture positive shown in the EMR in our sample
 
+Next, see if result_time of BCP aligns with central line insert period.
 Trying to join central_lined_df and bcp_df to see patients who are cl inserted and bcp
 ```{r}
 join_cl_bcp =
@@ -59,7 +62,7 @@ join_cl_bcp =
 
 join_cl_bcp
 ```
-
+Great, we found `r nrow(join_cl_bcp)` observations of patients who have blood culture positive within the 14-day period of central line inserted. 
 
 Next, we look at TPN data
 ```{r}
@@ -69,7 +72,8 @@ tpn_df =
   select(EMPI, START_DATE, END_DATE) %>% 
   mutate(
     status = "tpn"
-  )
+  ) %>% 
+  distinct(EMPI, .keep_all = TRUE)
 tpn_df
 ```
 ## R Markdown

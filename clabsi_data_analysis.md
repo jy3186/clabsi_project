@@ -3,8 +3,8 @@ clabsi_data_analysis
 Jiayi Yang
 2022-10-04
 
-Importing and tidying CLABSI data, keeping duplicative appeared patients
-only once
+Importing and tidying CLABSI data, keeping duplicative dates appeared
+patients only once
 
 ``` r
 central_lined_df =
@@ -38,6 +38,8 @@ central_lined_df
     ##  9   1.00e9 2021-04-18 00:00:00 centr… 2021-05-02 2021-04-18 UTC--2021-05-02 UTC
     ## 10   1.00e9 2020-03-08 00:00:00 centr… 2020-03-22 2020-03-08 UTC--2020-03-22 UTC
     ## # … with 6,734 more rows, and 1 more variable: date <dttm>
+
+We have 6744 patients who have central lines inserted in our sample
 
 Bloodstream Infectious importing and cleaning
 
@@ -75,8 +77,10 @@ bcp_df
     ## 10 1000073127 BLOOD CULTURE 2021-07-19 11:24:00 blood_culture_positi… 2021-07-19
     ## # … with 2,536 more rows
 
-See if result_time of BCP aligns with central line insert period.
+We have 2546 patients who have blood culture positive shown in the EMR
+in our sample
 
+Next, see if result_time of BCP aligns with central line insert period.
 Trying to join central_lined_df and bcp_df to see patients who are cl
 inserted and bcp
 
@@ -108,6 +112,9 @@ join_cl_bcp
     ## #   RESULT_TIME <dttm>, status.y <chr>, date.y <date>, join_status <dbl>, and
     ## #   abbreviated variable name ¹​status.x
 
+Great, we found 1743 observations of patients who have blood culture
+positive within the 14-day period of central line inserted.
+
 Next, we look at TPN data
 
 ``` r
@@ -117,23 +124,24 @@ tpn_df =
   select(EMPI, START_DATE, END_DATE) %>% 
   mutate(
     status = "tpn"
-  )
+  ) %>% 
+  distinct(EMPI, .keep_all = TRUE)
 tpn_df
 ```
 
-    ## # A tibble: 2,310 × 4
+    ## # A tibble: 129 × 4
     ##          EMPI START_DATE          END_DATE            status
     ##         <dbl> <dttm>              <dttm>              <chr> 
     ##  1 1000039263 2020-03-24 00:00:00 2020-03-25 00:00:00 tpn   
-    ##  2 1000039263 2020-03-25 00:00:00 2020-03-26 00:00:00 tpn   
-    ##  3 1000039263 2020-03-26 00:00:00 2020-03-27 00:00:00 tpn   
-    ##  4 1000039263 2020-03-27 00:00:00 2020-03-28 00:00:00 tpn   
-    ##  5 1000039263 2020-03-28 00:00:00 2020-03-29 00:00:00 tpn   
-    ##  6 1000391782 2021-07-24 00:00:00 2021-07-25 00:00:00 tpn   
-    ##  7 1000391782 2021-07-25 00:00:00 2021-07-26 00:00:00 tpn   
-    ##  8 1000391782 2021-07-29 00:00:00 2021-07-30 00:00:00 tpn   
-    ##  9 1000708322 2020-06-05 00:00:00 2020-06-06 00:00:00 tpn   
-    ## 10 1000708322 2020-06-06 00:00:00 2020-06-07 00:00:00 tpn   
-    ## # … with 2,300 more rows
+    ##  2 1000391782 2021-07-24 00:00:00 2021-07-25 00:00:00 tpn   
+    ##  3 1000708322 2020-06-05 00:00:00 2020-06-06 00:00:00 tpn   
+    ##  4 1000735510 2021-10-14 00:00:00 2021-10-15 00:00:00 tpn   
+    ##  5 1000757776 2022-01-22 00:00:00 2022-01-23 00:00:00 tpn   
+    ##  6 1000990516 2021-06-04 00:00:00 2021-06-05 00:00:00 tpn   
+    ##  7 1001046352 2020-02-13 00:00:00 2020-02-14 00:00:00 tpn   
+    ##  8 1001636642 2020-07-07 00:00:00 2020-07-08 00:00:00 tpn   
+    ##  9 1001668036 2020-10-23 00:00:00 2020-10-24 00:00:00 tpn   
+    ## 10 1002360958 2022-05-27 00:00:00 2022-05-28 00:00:00 tpn   
+    ## # … with 119 more rows
 
 ## R Markdown
