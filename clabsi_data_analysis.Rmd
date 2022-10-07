@@ -9,9 +9,10 @@ output: github_document
 library(tidyverse)
 library(readxl)
 library(lubridate)
+library(dplyr)
 ```
 
-Importing and tidying CLABSI data
+Importing and tidying CLABSI data, keeping duplicative appeared patients only once
 
 ```{r}
 central_lined_df =
@@ -19,25 +20,48 @@ central_lined_df =
   arrange(EMPI) %>% 
   select(EMPI, ordering_date) %>% 
 mutate(
-  status = "central_lined"
-)
+  status = "central_lined",
+  end_date = ymd(ordering_date) + days(14)
+) %>% 
+  distinct(EMPI, ordering_date, .keep_all = TRUE) %>% 
+  mutate(
+      period_1 = interval(ymd(ordering_date), ymd(end_date)),
+      date = ordering_date
+  )
+
 central_lined_df
 ```
-Bloodstream Infectious
+Bloodstream Infectious importing and cleaning
 ```{r}
 bcp_df =
-  read_excel("./CLABSI_data.xlsx", sheet = 3, range = cell_cols("A:J")) %>% 
+  read_excel("./CLABSI_data.xlsx", sheet = 3, range = cell_cols("A:K")) %>% 
   arrange(EMPI) %>% 
   select(EMPI, PROC_NAME, RESULT_TIME) %>% 
   filter(PROC_NAME == "BLOOD CULTURE") %>% 
-mutate(
-  status = "blood_culture_positive"
-)
+  mutate(
+  status = "blood_culture_positive",
+  date = as.Date(RESULT_TIME, "%y/%m/%d")
+)  %>% 
+  distinct(EMPI, date, .keep_all = TRUE)
 bcp_df
+```
+See if result_time of BCP aligns with central line insert period.
+
+
+Trying to join central_lined_df and bcp_df to see patients who are cl inserted and bcp
+```{r}
+join_cl_bcp =
+  left_join(central_lined_df, bcp_df, by = c("EMPI")) %>% 
+  mutate(
+    join_status = ifelse(date.y %within% period_1, 1, 0)
+  ) %>% 
+   filter(join_status == 1)
+
+join_cl_bcp
 ```
 
 
-TPN data
+Next, we look at TPN data
 ```{r}
 tpn_df =
    read_excel("./CLABSI_data.xlsx", sheet = 4, range = cell_cols("A:K")) %>% 
@@ -48,14 +72,4 @@ tpn_df =
   )
 tpn_df
 ```
-
-Trying to join central_lined_df and tpn_df to see patients who are cl inserted and tpn 
-```{r}
-join_cl_tpn =
-  left_join(central_lined_df, tpn_df, by = "EMPI") %>% 
-  drop_na() %>% 
-   filter(!is.na("status"))
-join_cl_tpn
-```
-
 ## R Markdown
