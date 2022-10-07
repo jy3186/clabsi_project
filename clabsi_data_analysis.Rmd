@@ -58,11 +58,15 @@ join_cl_bcp =
   mutate(
     join_status = ifelse(date.y %within% period_1, 1, 0)
   ) %>% 
-   filter(join_status == 1)
+   filter(join_status == 1) %>% 
+  select(EMPI, status.x, status.y, join_status, date.y, period_1)
 
 join_cl_bcp
 ```
 Great, we found `r nrow(join_cl_bcp)` observations of patients who have blood culture positive within the 14-day period of central line inserted. 
+
+Incidence of bcp in central lined patients are `r nrow(join_cl_bcp)` / `r nrow(central_lined_df)`.
+
 
 Next, we look at TPN data
 ```{r}
@@ -72,8 +76,7 @@ tpn_df =
   select(EMPI, START_DATE, END_DATE) %>% 
   mutate(
     status = "tpn"
-  ) %>% 
-  distinct(EMPI, .keep_all = TRUE)
+  )
 tpn_df
 ```
 ## R Markdown
