@@ -19,25 +19,26 @@ mutate(
   mutate(
       period_1 = interval(ymd(ordering_date), ymd(end_date)),
       date = ordering_date
-  )
+  ) %>% 
+  select(EMPI, status, date, period_1)
 
 central_lined_df
 ```
 
-    ## # A tibble: 6,744 × 6
-    ##        EMPI ordering_date       status end_date   period_1                      
-    ##       <dbl> <dttm>              <chr>  <date>     <Interval>                    
-    ##  1   1.00e9 2021-04-15 00:00:00 centr… 2021-04-29 2021-04-15 UTC--2021-04-29 UTC
-    ##  2   1.00e9 2021-05-01 00:00:00 centr… 2021-05-15 2021-05-01 UTC--2021-05-15 UTC
-    ##  3   1.00e9 2021-04-17 00:00:00 centr… 2021-05-01 2021-04-17 UTC--2021-05-01 UTC
-    ##  4   1.00e9 2021-05-10 00:00:00 centr… 2021-05-24 2021-05-10 UTC--2021-05-24 UTC
-    ##  5   1.00e9 2020-11-07 00:00:00 centr… 2020-11-21 2020-11-07 UTC--2020-11-21 UTC
-    ##  6   1.00e9 2020-11-06 00:00:00 centr… 2020-11-20 2020-11-06 UTC--2020-11-20 UTC
-    ##  7   1.00e9 2022-03-17 00:00:00 centr… 2022-03-31 2022-03-17 UTC--2022-03-31 UTC
-    ##  8   1.00e9 2021-01-17 00:00:00 centr… 2021-01-31 2021-01-17 UTC--2021-01-31 UTC
-    ##  9   1.00e9 2021-04-18 00:00:00 centr… 2021-05-02 2021-04-18 UTC--2021-05-02 UTC
-    ## 10   1.00e9 2020-03-08 00:00:00 centr… 2020-03-22 2020-03-08 UTC--2020-03-22 UTC
-    ## # … with 6,734 more rows, and 1 more variable: date <dttm>
+    ## # A tibble: 6,744 × 4
+    ##          EMPI status        date                period_1                      
+    ##         <dbl> <chr>         <dttm>              <Interval>                    
+    ##  1 1000005895 central_lined 2021-04-15 00:00:00 2021-04-15 UTC--2021-04-29 UTC
+    ##  2 1000005895 central_lined 2021-05-01 00:00:00 2021-05-01 UTC--2021-05-15 UTC
+    ##  3 1000005895 central_lined 2021-04-17 00:00:00 2021-04-17 UTC--2021-05-01 UTC
+    ##  4 1000012361 central_lined 2021-05-10 00:00:00 2021-05-10 UTC--2021-05-24 UTC
+    ##  5 1000016630 central_lined 2020-11-07 00:00:00 2020-11-07 UTC--2020-11-21 UTC
+    ##  6 1000016630 central_lined 2020-11-06 00:00:00 2020-11-06 UTC--2020-11-20 UTC
+    ##  7 1000018092 central_lined 2022-03-17 00:00:00 2022-03-17 UTC--2022-03-31 UTC
+    ##  8 1000027309 central_lined 2021-01-17 00:00:00 2021-01-17 UTC--2021-01-31 UTC
+    ##  9 1000030188 central_lined 2021-04-18 00:00:00 2021-04-18 UTC--2021-05-02 UTC
+    ## 10 1000039263 central_lined 2020-03-08 00:00:00 2020-03-08 UTC--2020-03-22 UTC
+    ## # … with 6,734 more rows
 
 We have 6744 patients who have central lines inserted in our sample
 
@@ -91,26 +92,51 @@ join_cl_bcp =
     join_status = ifelse(date.y %within% period_1, 1, 0)
   ) %>% 
    filter(join_status == 1) %>% 
-  select(EMPI, status.x, status.y, join_status, date.y, period_1)
+  select(EMPI, join_status, date.y)
 
 join_cl_bcp
 ```
 
-    ## # A tibble: 1,743 × 6
-    ##          EMPI status.x statu…¹ join_…² date.y     period_1                      
-    ##         <dbl> <chr>    <chr>     <dbl> <date>     <Interval>                    
-    ##  1 1000005895 central… blood_…       1 2021-05-06 2021-05-01 UTC--2021-05-15 UTC
-    ##  2 1000005895 central… blood_…       1 2021-05-11 2021-05-01 UTC--2021-05-15 UTC
-    ##  3 1000005895 central… blood_…       1 2021-05-03 2021-05-01 UTC--2021-05-15 UTC
-    ##  4 1000016630 central… blood_…       1 2020-11-12 2020-11-07 UTC--2020-11-21 UTC
-    ##  5 1000016630 central… blood_…       1 2020-11-12 2020-11-06 UTC--2020-11-20 UTC
-    ##  6 1000050994 central… blood_…       1 2020-03-29 2020-03-24 UTC--2020-04-07 UTC
-    ##  7 1000050994 central… blood_…       1 2020-03-28 2020-03-24 UTC--2020-04-07 UTC
-    ##  8 1000070882 central… blood_…       1 2021-07-31 2021-07-28 UTC--2021-08-11 UTC
-    ##  9 1000070882 central… blood_…       1 2021-08-01 2021-07-28 UTC--2021-08-11 UTC
-    ## 10 1000083897 central… blood_…       1 2022-02-09 2022-02-09 UTC--2022-02-23 UTC
-    ## # … with 1,733 more rows, and abbreviated variable names ¹​status.y,
-    ## #   ²​join_status
+    ## # A tibble: 1,743 × 3
+    ##          EMPI join_status date.y    
+    ##         <dbl>       <dbl> <date>    
+    ##  1 1000005895           1 2021-05-06
+    ##  2 1000005895           1 2021-05-11
+    ##  3 1000005895           1 2021-05-03
+    ##  4 1000016630           1 2020-11-12
+    ##  5 1000016630           1 2020-11-12
+    ##  6 1000050994           1 2020-03-29
+    ##  7 1000050994           1 2020-03-28
+    ##  8 1000070882           1 2021-07-31
+    ##  9 1000070882           1 2021-08-01
+    ## 10 1000083897           1 2022-02-09
+    ## # … with 1,733 more rows
+
+Combined the `central_line_df` (population) with `join_cl_bcp`(cases) to
+a single dataframe `plot_df` to plot a histogram
+
+``` r
+plot_df = 
+  left_join(central_lined_df, join_cl_bcp, by = "EMPI") %>% 
+  distinct(EMPI, across(contains ("period_1")), .keep_all = TRUE)
+plot_df
+```
+
+    ## # A tibble: 6,744 × 6
+    ##          EMPI status  date                period_1                       join_…¹
+    ##         <dbl> <chr>   <dttm>              <Interval>                       <dbl>
+    ##  1 1000005895 centra… 2021-04-15 00:00:00 2021-04-15 UTC--2021-04-29 UTC       1
+    ##  2 1000005895 centra… 2021-05-01 00:00:00 2021-05-01 UTC--2021-05-15 UTC       1
+    ##  3 1000005895 centra… 2021-04-17 00:00:00 2021-04-17 UTC--2021-05-01 UTC       1
+    ##  4 1000012361 centra… 2021-05-10 00:00:00 2021-05-10 UTC--2021-05-24 UTC      NA
+    ##  5 1000016630 centra… 2020-11-07 00:00:00 2020-11-07 UTC--2020-11-21 UTC       1
+    ##  6 1000016630 centra… 2020-11-06 00:00:00 2020-11-06 UTC--2020-11-20 UTC       1
+    ##  7 1000018092 centra… 2022-03-17 00:00:00 2022-03-17 UTC--2022-03-31 UTC      NA
+    ##  8 1000027309 centra… 2021-01-17 00:00:00 2021-01-17 UTC--2021-01-31 UTC      NA
+    ##  9 1000030188 centra… 2021-04-18 00:00:00 2021-04-18 UTC--2021-05-02 UTC      NA
+    ## 10 1000039263 centra… 2020-03-08 00:00:00 2020-03-08 UTC--2020-03-22 UTC      NA
+    ## # … with 6,734 more rows, 1 more variable: date.y <date>, and abbreviated
+    ## #   variable name ¹​join_status
 
 Great, we found 1743 observations of patients who have blood culture
 positive within the 14-day period of central line inserted.
@@ -126,23 +152,24 @@ tpn_df =
   select(EMPI, START_DATE, END_DATE) %>% 
   mutate(
     status = "tpn"
-  )
+  ) %>% 
+  distinct(EMPI, .keep_all = TRUE)
 tpn_df
 ```
 
-    ## # A tibble: 2,310 × 4
+    ## # A tibble: 129 × 4
     ##          EMPI START_DATE          END_DATE            status
     ##         <dbl> <dttm>              <dttm>              <chr> 
     ##  1 1000039263 2020-03-24 00:00:00 2020-03-25 00:00:00 tpn   
-    ##  2 1000039263 2020-03-25 00:00:00 2020-03-26 00:00:00 tpn   
-    ##  3 1000039263 2020-03-26 00:00:00 2020-03-27 00:00:00 tpn   
-    ##  4 1000039263 2020-03-27 00:00:00 2020-03-28 00:00:00 tpn   
-    ##  5 1000039263 2020-03-28 00:00:00 2020-03-29 00:00:00 tpn   
-    ##  6 1000391782 2021-07-24 00:00:00 2021-07-25 00:00:00 tpn   
-    ##  7 1000391782 2021-07-25 00:00:00 2021-07-26 00:00:00 tpn   
-    ##  8 1000391782 2021-07-29 00:00:00 2021-07-30 00:00:00 tpn   
-    ##  9 1000708322 2020-06-05 00:00:00 2020-06-06 00:00:00 tpn   
-    ## 10 1000708322 2020-06-06 00:00:00 2020-06-07 00:00:00 tpn   
-    ## # … with 2,300 more rows
+    ##  2 1000391782 2021-07-24 00:00:00 2021-07-25 00:00:00 tpn   
+    ##  3 1000708322 2020-06-05 00:00:00 2020-06-06 00:00:00 tpn   
+    ##  4 1000735510 2021-10-14 00:00:00 2021-10-15 00:00:00 tpn   
+    ##  5 1000757776 2022-01-22 00:00:00 2022-01-23 00:00:00 tpn   
+    ##  6 1000990516 2021-06-04 00:00:00 2021-06-05 00:00:00 tpn   
+    ##  7 1001046352 2020-02-13 00:00:00 2020-02-14 00:00:00 tpn   
+    ##  8 1001636642 2020-07-07 00:00:00 2020-07-08 00:00:00 tpn   
+    ##  9 1001668036 2020-10-23 00:00:00 2020-10-24 00:00:00 tpn   
+    ## 10 1002360958 2022-05-27 00:00:00 2022-05-28 00:00:00 tpn   
+    ## # … with 119 more rows
 
 ## R Markdown

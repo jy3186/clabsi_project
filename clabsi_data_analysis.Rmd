@@ -27,7 +27,8 @@ mutate(
   mutate(
       period_1 = interval(ymd(ordering_date), ymd(end_date)),
       date = ordering_date
-  )
+  ) %>% 
+  select(EMPI, status, date, period_1)
 
 central_lined_df
 ```
@@ -59,10 +60,18 @@ join_cl_bcp =
     join_status = ifelse(date.y %within% period_1, 1, 0)
   ) %>% 
    filter(join_status == 1) %>% 
-  select(EMPI, status.x, status.y, join_status, date.y, period_1)
+  select(EMPI, join_status, date.y)
 
 join_cl_bcp
 ```
+Combined the `central_line_df` (population) with `join_cl_bcp`(cases) to a single dataframe `plot_df` to plot a histogram
+```{r}
+plot_df = 
+  left_join(central_lined_df, join_cl_bcp, by = "EMPI") %>% 
+  distinct(EMPI, across(contains ("period_1")), .keep_all = TRUE)
+plot_df
+```
+
 Great, we found `r nrow(join_cl_bcp)` observations of patients who have blood culture positive within the 14-day period of central line inserted. 
 
 Incidence of bcp in central lined patients are `r nrow(join_cl_bcp)` / `r nrow(central_lined_df)`.
@@ -76,7 +85,8 @@ tpn_df =
   select(EMPI, START_DATE, END_DATE) %>% 
   mutate(
     status = "tpn"
-  )
+  ) %>% 
+  distinct(EMPI, .keep_all = TRUE)
 tpn_df
 ```
 ## R Markdown
