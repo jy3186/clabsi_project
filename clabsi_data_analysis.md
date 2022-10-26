@@ -20,7 +20,7 @@ mutate(
       period_1 = interval(ymd(ordering_date), ymd(end_date)),
       date = ordering_date
   ) %>% 
-  select(EMPI, status, date, period_1)
+  select(EMPI, status, date, period_1) 
 
 central_lined_df
 ```
@@ -89,59 +89,35 @@ inserted and bcp
 join_cl_bcp =
   left_join(central_lined_df, bcp_df, by = c("EMPI")) %>% 
   mutate(
-    join_status = ifelse(date.y %within% period_1, 1, 0)
+    join_status = ifelse(date.y %within% period_1, 1, 0),
+    date = date.y
   ) %>% 
    filter(join_status == 1) %>% 
-  select(EMPI, join_status, date.y)
+  select(EMPI, join_status, date) %>% 
+  distinct(EMPI)
 
 join_cl_bcp
 ```
 
-    ## # A tibble: 1,743 × 3
-    ##          EMPI join_status date.y    
-    ##         <dbl>       <dbl> <date>    
-    ##  1 1000005895           1 2021-05-06
-    ##  2 1000005895           1 2021-05-11
-    ##  3 1000005895           1 2021-05-03
-    ##  4 1000016630           1 2020-11-12
-    ##  5 1000016630           1 2020-11-12
-    ##  6 1000050994           1 2020-03-29
-    ##  7 1000050994           1 2020-03-28
-    ##  8 1000070882           1 2021-07-31
-    ##  9 1000070882           1 2021-08-01
-    ## 10 1000083897           1 2022-02-09
-    ## # … with 1,733 more rows
+    ## # A tibble: 827 × 1
+    ##          EMPI
+    ##         <dbl>
+    ##  1 1000005895
+    ##  2 1000016630
+    ##  3 1000050994
+    ##  4 1000070882
+    ##  5 1000083897
+    ##  6 1000087431
+    ##  7 1000161564
+    ##  8 1000227702
+    ##  9 1000248063
+    ## 10 1000268431
+    ## # … with 817 more rows
 
-Combined the `central_line_df` (population) with `join_cl_bcp`(cases) to
-a single dataframe `plot_df` to plot a histogram
-
-``` r
-plot_df = 
-  left_join(central_lined_df, join_cl_bcp, by = "EMPI") %>% 
-  distinct(EMPI, across(contains ("period_1")), .keep_all = TRUE)
-plot_df
-```
-
-    ## # A tibble: 6,744 × 6
-    ##          EMPI status  date                period_1                       join_…¹
-    ##         <dbl> <chr>   <dttm>              <Interval>                       <dbl>
-    ##  1 1000005895 centra… 2021-04-15 00:00:00 2021-04-15 UTC--2021-04-29 UTC       1
-    ##  2 1000005895 centra… 2021-05-01 00:00:00 2021-05-01 UTC--2021-05-15 UTC       1
-    ##  3 1000005895 centra… 2021-04-17 00:00:00 2021-04-17 UTC--2021-05-01 UTC       1
-    ##  4 1000012361 centra… 2021-05-10 00:00:00 2021-05-10 UTC--2021-05-24 UTC      NA
-    ##  5 1000016630 centra… 2020-11-07 00:00:00 2020-11-07 UTC--2020-11-21 UTC       1
-    ##  6 1000016630 centra… 2020-11-06 00:00:00 2020-11-06 UTC--2020-11-20 UTC       1
-    ##  7 1000018092 centra… 2022-03-17 00:00:00 2022-03-17 UTC--2022-03-31 UTC      NA
-    ##  8 1000027309 centra… 2021-01-17 00:00:00 2021-01-17 UTC--2021-01-31 UTC      NA
-    ##  9 1000030188 centra… 2021-04-18 00:00:00 2021-04-18 UTC--2021-05-02 UTC      NA
-    ## 10 1000039263 centra… 2020-03-08 00:00:00 2020-03-08 UTC--2020-03-22 UTC      NA
-    ## # … with 6,734 more rows, 1 more variable: date.y <date>, and abbreviated
-    ## #   variable name ¹​join_status
-
-Great, we found 1743 observations of patients who have blood culture
+Great, we found 827 observations of patients who have blood culture
 positive within the 14-day period of central line inserted.
 
-Incidence of bcp in central lined patients are 1743 / 6744.
+Incidence of bcp in central lined patients are 827 / 6744.
 
 Next, we look at TPN data
 

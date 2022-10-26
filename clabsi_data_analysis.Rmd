@@ -10,6 +10,7 @@ library(tidyverse)
 library(readxl)
 library(lubridate)
 library(dplyr)
+
 ```
 
 Importing and tidying CLABSI data, keeping duplicative dates appeared patients only once
@@ -28,7 +29,7 @@ mutate(
       period_1 = interval(ymd(ordering_date), ymd(end_date)),
       date = ordering_date
   ) %>% 
-  select(EMPI, status, date, period_1)
+  select(EMPI, status, date, period_1) 
 
 central_lined_df
 ```
@@ -57,20 +58,17 @@ Trying to join central_lined_df and bcp_df to see patients who are cl inserted a
 join_cl_bcp =
   left_join(central_lined_df, bcp_df, by = c("EMPI")) %>% 
   mutate(
-    join_status = ifelse(date.y %within% period_1, 1, 0)
+    join_status = ifelse(date.y %within% period_1, 1, 0),
+    date = date.y
   ) %>% 
    filter(join_status == 1) %>% 
-  select(EMPI, join_status, date.y)
+  select(EMPI, join_status, date) %>% 
+  distinct(EMPI)
 
 join_cl_bcp
 ```
-Combined the `central_line_df` (population) with `join_cl_bcp`(cases) to a single dataframe `plot_df` to plot a histogram
-```{r}
-plot_df = 
-  left_join(central_lined_df, join_cl_bcp, by = "EMPI") %>% 
-  distinct(EMPI, across(contains ("period_1")), .keep_all = TRUE)
-plot_df
-```
+
+
 
 Great, we found `r nrow(join_cl_bcp)` observations of patients who have blood culture positive within the 14-day period of central line inserted. 
 
