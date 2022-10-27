@@ -3,8 +3,7 @@ clabsi_data_analysis
 Jiayi Yang
 2022-10-04
 
-Importing and tidying CLABSI data, keeping duplicative dates appeared
-patients only once
+Importing and tidying CLABSI data, adding a period of 14 days
 
 ``` r
 central_lined_df =
@@ -87,37 +86,59 @@ inserted and bcp
 
 ``` r
 join_cl_bcp =
-  left_join(central_lined_df, bcp_df, by = c("EMPI")) %>% 
+  left_join(central_lined_df, bcp_df, by = c("EMPI")) %>%
   mutate(
-    join_status = ifelse(date.y %within% period_1, 1, 0),
-    date = date.y
-  ) %>% 
-   filter(join_status == 1) %>% 
-  select(EMPI, join_status, date) %>% 
-  distinct(EMPI)
+    bcp_status = ifelse(date.y %within% period_1, 1, 0)
+  ) %>%    
+drop_na() %>% 
+  select(EMPI, bcp_status)
 
 join_cl_bcp
 ```
 
-    ## # A tibble: 827 × 1
-    ##          EMPI
-    ##         <dbl>
-    ##  1 1000005895
-    ##  2 1000016630
-    ##  3 1000050994
-    ##  4 1000070882
-    ##  5 1000083897
-    ##  6 1000087431
-    ##  7 1000161564
-    ##  8 1000227702
-    ##  9 1000248063
-    ## 10 1000268431
-    ## # … with 817 more rows
+    ## # A tibble: 5,667 × 2
+    ##          EMPI bcp_status
+    ##         <dbl>      <dbl>
+    ##  1 1000005895          0
+    ##  2 1000005895          0
+    ##  3 1000005895          0
+    ##  4 1000005895          0
+    ##  5 1000005895          0
+    ##  6 1000005895          1
+    ##  7 1000005895          1
+    ##  8 1000005895          1
+    ##  9 1000005895          0
+    ## 10 1000005895          0
+    ## # … with 5,657 more rows
 
-Great, we found 827 observations of patients who have blood culture
+Great, we found 5667 observations of patients who have blood culture
 positive within the 14-day period of central line inserted.
 
-Incidence of bcp in central lined patients are 827 / 6744.
+Incidence of bcp in central lined patients are 5667 / 6744.
+
+make an EDA table
+
+``` r
+EDA_plot =
+  left_join(central_lined_df, join_cl_bcp, by = c("EMPI")) %>% 
+  drop_na()
+EDA_plot
+```
+
+    ## # A tibble: 21,659 × 5
+    ##          EMPI status  date                period_1                       bcp_s…¹
+    ##         <dbl> <chr>   <dttm>              <Interval>                       <dbl>
+    ##  1 1000005895 centra… 2021-04-15 00:00:00 2021-04-15 UTC--2021-04-29 UTC       0
+    ##  2 1000005895 centra… 2021-04-15 00:00:00 2021-04-15 UTC--2021-04-29 UTC       0
+    ##  3 1000005895 centra… 2021-04-15 00:00:00 2021-04-15 UTC--2021-04-29 UTC       0
+    ##  4 1000005895 centra… 2021-04-15 00:00:00 2021-04-15 UTC--2021-04-29 UTC       0
+    ##  5 1000005895 centra… 2021-04-15 00:00:00 2021-04-15 UTC--2021-04-29 UTC       0
+    ##  6 1000005895 centra… 2021-04-15 00:00:00 2021-04-15 UTC--2021-04-29 UTC       1
+    ##  7 1000005895 centra… 2021-04-15 00:00:00 2021-04-15 UTC--2021-04-29 UTC       1
+    ##  8 1000005895 centra… 2021-04-15 00:00:00 2021-04-15 UTC--2021-04-29 UTC       1
+    ##  9 1000005895 centra… 2021-04-15 00:00:00 2021-04-15 UTC--2021-04-29 UTC       0
+    ## 10 1000005895 centra… 2021-04-15 00:00:00 2021-04-15 UTC--2021-04-29 UTC       0
+    ## # … with 21,649 more rows, and abbreviated variable name ¹​bcp_status
 
 Next, we look at TPN data
 
@@ -128,24 +149,44 @@ tpn_df =
   select(EMPI, START_DATE, END_DATE) %>% 
   mutate(
     status = "tpn"
-  ) %>% 
-  distinct(EMPI, .keep_all = TRUE)
+  )
 tpn_df
 ```
 
-    ## # A tibble: 129 × 4
+    ## # A tibble: 2,310 × 4
     ##          EMPI START_DATE          END_DATE            status
     ##         <dbl> <dttm>              <dttm>              <chr> 
     ##  1 1000039263 2020-03-24 00:00:00 2020-03-25 00:00:00 tpn   
-    ##  2 1000391782 2021-07-24 00:00:00 2021-07-25 00:00:00 tpn   
-    ##  3 1000708322 2020-06-05 00:00:00 2020-06-06 00:00:00 tpn   
-    ##  4 1000735510 2021-10-14 00:00:00 2021-10-15 00:00:00 tpn   
-    ##  5 1000757776 2022-01-22 00:00:00 2022-01-23 00:00:00 tpn   
-    ##  6 1000990516 2021-06-04 00:00:00 2021-06-05 00:00:00 tpn   
-    ##  7 1001046352 2020-02-13 00:00:00 2020-02-14 00:00:00 tpn   
-    ##  8 1001636642 2020-07-07 00:00:00 2020-07-08 00:00:00 tpn   
-    ##  9 1001668036 2020-10-23 00:00:00 2020-10-24 00:00:00 tpn   
-    ## 10 1002360958 2022-05-27 00:00:00 2022-05-28 00:00:00 tpn   
-    ## # … with 119 more rows
+    ##  2 1000039263 2020-03-25 00:00:00 2020-03-26 00:00:00 tpn   
+    ##  3 1000039263 2020-03-26 00:00:00 2020-03-27 00:00:00 tpn   
+    ##  4 1000039263 2020-03-27 00:00:00 2020-03-28 00:00:00 tpn   
+    ##  5 1000039263 2020-03-28 00:00:00 2020-03-29 00:00:00 tpn   
+    ##  6 1000391782 2021-07-24 00:00:00 2021-07-25 00:00:00 tpn   
+    ##  7 1000391782 2021-07-25 00:00:00 2021-07-26 00:00:00 tpn   
+    ##  8 1000391782 2021-07-29 00:00:00 2021-07-30 00:00:00 tpn   
+    ##  9 1000708322 2020-06-05 00:00:00 2020-06-06 00:00:00 tpn   
+    ## 10 1000708322 2020-06-06 00:00:00 2020-06-07 00:00:00 tpn   
+    ## # … with 2,300 more rows
+
+``` r
+distr_plot = 
+  tpn_df %>% 
+    group_by(EMPI) %>% 
+ summarize(n_obs = n()) %>% 
+   mutate(patient = 1:n(),
+          patient = as.integer(patient))
+
+ggplot(distr_plot, aes(x = patient, y = n_obs)) + 
+  geom_point(aes(color = "patient"), alpha = .5) +
+  geom_line(na.rm = FALSE) +
+  labs(
+    title = "Distribution of PN days for each patient",
+    x = "patient",
+    y = "PN days observations"
+  ) + 
+    theme(legend.position = "bottom")
+```
+
+![](clabsi_data_analysis_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
 
 ## R Markdown

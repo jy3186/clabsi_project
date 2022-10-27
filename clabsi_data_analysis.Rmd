@@ -10,10 +10,10 @@ library(tidyverse)
 library(readxl)
 library(lubridate)
 library(dplyr)
-
+library(ggridges)
 ```
 
-Importing and tidying CLABSI data, keeping duplicative dates appeared patients only once
+Importing and tidying CLABSI data, adding a period of 14 days
 
 ```{r}
 central_lined_df =
@@ -56,14 +56,12 @@ Next, see if result_time of BCP aligns with central line insert period.
 Trying to join central_lined_df and bcp_df to see patients who are cl inserted and bcp
 ```{r}
 join_cl_bcp =
-  left_join(central_lined_df, bcp_df, by = c("EMPI")) %>% 
+  left_join(central_lined_df, bcp_df, by = c("EMPI")) %>%
   mutate(
-    join_status = ifelse(date.y %within% period_1, 1, 0),
-    date = date.y
-  ) %>% 
-   filter(join_status == 1) %>% 
-  select(EMPI, join_status, date) %>% 
-  distinct(EMPI)
+    bcp_status = ifelse(date.y %within% period_1, 1, 0)
+  ) %>%    
+drop_na() %>% 
+  select(EMPI, bcp_status)
 
 join_cl_bcp
 ```
@@ -75,6 +73,15 @@ Great, we found `r nrow(join_cl_bcp)` observations of patients who have blood cu
 Incidence of bcp in central lined patients are `r nrow(join_cl_bcp)` / `r nrow(central_lined_df)`.
 
 
+make an EDA table
+```{r}
+EDA_plot =
+  left_join(central_lined_df, join_cl_bcp, by = c("EMPI")) %>% 
+  drop_na()
+EDA_plot
+```
+
+
 Next, we look at TPN data
 ```{r}
 tpn_df =
@@ -83,8 +90,28 @@ tpn_df =
   select(EMPI, START_DATE, END_DATE) %>% 
   mutate(
     status = "tpn"
-  ) %>% 
-  distinct(EMPI, .keep_all = TRUE)
+  )
 tpn_df
 ```
+```{r}
+
+distr_plot = 
+  tpn_df %>% 
+    group_by(EMPI) %>% 
+ summarize(n_obs = n()) %>% 
+   mutate(patient = 1:n(),
+          patient = as.integer(patient))
+
+ggplot(distr_plot, aes(x = patient, y = n_obs)) + 
+  geom_point(aes(color = "patient"), alpha = .5) +
+  geom_line(na.rm = FALSE) +
+  labs(
+    title = "Distribution of PN days for each patient",
+    x = "patient",
+    y = "PN days observations"
+  ) + 
+    theme(legend.position = "bottom")
+
+```
+
 ## R Markdown
