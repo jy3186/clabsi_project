@@ -175,18 +175,38 @@ distr_plot =
  summarize(n_obs = n()) %>% 
    mutate(patient = 1:n(),
           patient = as.integer(patient))
-
-ggplot(distr_plot, aes(x = patient, y = n_obs)) + 
-  geom_point(aes(color = "patient"), alpha = .5) +
-  geom_line(na.rm = FALSE) +
+ggplot(distr_plot, aes(x = n_obs)) +
+  geom_histogram() + scale_x_continuous(breaks = seq(0, 150, by = 10)) + scale_y_continuous(breaks = seq(0, 40, by = 2)) +
   labs(
-    title = "Distribution of PN days for each patient",
-    x = "patient",
-    y = "PN days observations"
-  ) + 
-    theme(legend.position = "bottom")
+    title = "Distribution of PN days for patients",
+    x = "# of days on PN",
+    y = "# of patients were on PN for that many days"
+  ) 
 ```
 
+    ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+
 ![](clabsi_data_analysis_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
+
+``` r
+distr_plot
+```
+
+    ## # A tibble: 129 × 3
+    ##          EMPI n_obs patient
+    ##         <dbl> <int>   <int>
+    ##  1 1000039263     5       1
+    ##  2 1000391782     3       2
+    ##  3 1000708322     4       3
+    ##  4 1000735510    12       4
+    ##  5 1000757776     1       5
+    ##  6 1000990516     7       6
+    ##  7 1001046352     3       7
+    ##  8 1001636642     6       8
+    ##  9 1001668036     6       9
+    ## 10 1002360958    27      10
+    ## # … with 119 more rows
+
+\##`{r} ggplot(distr_plot, aes(x = patient, y = n_obs)) +    geom_point(aes(color = "patient"), alpha = .5) +   geom_line(na.rm = FALSE) +   labs(     title = "Distribution of PN days for each patient",     x = "patient",     y = "PN days observations"   ) +      theme(legend.position = "bottom") ##`
 
 ## R Markdown

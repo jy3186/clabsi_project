@@ -101,7 +101,18 @@ distr_plot =
  summarize(n_obs = n()) %>% 
    mutate(patient = 1:n(),
           patient = as.integer(patient))
+ggplot(distr_plot, aes(x = n_obs)) +
+  geom_histogram() + scale_x_continuous(breaks = seq(0, 150, by = 10)) + scale_y_continuous(breaks = seq(0, 40, by = 2)) +
+  labs(
+    title = "Distribution of PN days for patients",
+    x = "# of days on PN",
+    y = "# of patients were on PN for that many days"
+  ) 
+distr_plot
 
+
+```
+##```{r}
 ggplot(distr_plot, aes(x = patient, y = n_obs)) + 
   geom_point(aes(color = "patient"), alpha = .5) +
   geom_line(na.rm = FALSE) +
@@ -111,7 +122,6 @@ ggplot(distr_plot, aes(x = patient, y = n_obs)) +
     y = "PN days observations"
   ) + 
     theme(legend.position = "bottom")
-
-```
+##```
 
 ## R Markdown
