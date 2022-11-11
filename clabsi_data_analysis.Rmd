@@ -79,22 +79,14 @@ Table it BCP within 14 days
 ```{r}
 table_1=  
 knitr::kable(join_test2)
-table_1
 ```
 
 
-Great, we found `r nrow(join_cl_bcp)` observations of patients who have blood culture positive within the 14-day period of central line inserted. 
+Great, we found `r nrow(join_test2)` observations of patients who have blood culture positive within the 14-day period of central line inserted. 
 
-Incidence of bcp in central lined patients are `r nrow(join_cl_bcp)` / `r nrow(central_lined_df)`.
+Incidence of bcp in central lined patients are `r nrow(join_test2)` / `r nrow(test2)`.
 
 
-make an EDA table
-```{r}
-EDA_plot =
-  left_join(central_lined_df, join_cl_bcp, by = c("EMPI")) %>% 
-  drop_na()
-EDA_plot
-```
 
 
 Next, we look at TPN data
