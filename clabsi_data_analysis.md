@@ -124,7 +124,9 @@ join_test2
 Table it BCP within 14 days
 
 ``` r
-  knitr::kable(join_test2)
+table_1=  
+knitr::kable(join_test2)
+table_1
 ```
 
 |       EMPI | bcp_status | date.x     | date.y     | duration  |
