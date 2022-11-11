@@ -16,7 +16,8 @@ library(ggridges)
 Importing and tidying CLABSI data, adding a period of 14 days
 
 ```{r}
-central_lined_df =
+test = 
+  central_lined_df =
   read_excel("./CLABSI_data.xlsx", sheet = 1, range = cell_cols("A:G")) %>% 
   arrange(EMPI) %>% 
   select(EMPI, ordering_date) %>% 
@@ -29,9 +30,12 @@ mutate(
       period_1 = interval(ymd(ordering_date), ymd(end_date)),
       date = ordering_date
   ) %>% 
-  select(EMPI, status, date, period_1) 
+  select(EMPI, status, date, period_1) %>% 
+  arrange(EMPI,date) 
 
-central_lined_df
+test2 = 
+  test[!duplicated(test$EMPI), ]
+test2
 ```
 We have `r nrow(central_lined_df)` patients who have central lines inserted in our sample
 
@@ -55,17 +59,26 @@ We have `r nrow(bcp_df)` patients who have blood culture positive shown in the E
 Next, see if result_time of BCP aligns with central line insert period.
 Trying to join central_lined_df and bcp_df to see patients who are cl inserted and bcp
 ```{r}
+join_test=
 join_cl_bcp =
-  left_join(central_lined_df, bcp_df, by = c("EMPI")) %>%
+  left_join(test2, bcp_df, by = c("EMPI")) %>%
   mutate(
     bcp_status = ifelse(date.y %within% period_1, 1, 0)
   ) %>%    
 drop_na() %>% 
-  select(EMPI, bcp_status)
+  select(EMPI, bcp_status, date.x, date.y) %>% 
+  mutate(
+    duration = date.y - as.Date(date.x)) %>% 
+  arrange(EMPI, desc(bcp_status))
+  
+join_test2 = join_test[!duplicated(join_test$EMPI), ]
 
-join_cl_bcp
+join_test2
 ```
-
+Table it BCP within 14 days
+```{r}
+  knitr::kable(join_test2)
+```
 
 
 Great, we found `r nrow(join_cl_bcp)` observations of patients who have blood culture positive within the 14-day period of central line inserted. 
