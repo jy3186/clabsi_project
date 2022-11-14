@@ -68,12 +68,17 @@ join_cl_bcp =
 drop_na() %>% 
   select(EMPI, bcp_status, date.x, date.y) %>% 
   mutate(
-    duration = date.y - as.Date(date.x)) %>% 
+    date.x = as.Date(date.x),
+    duration = date.y - date.x
+    ) %>% 
   arrange(EMPI, desc(bcp_status))
   
 join_test2 = join_test[!duplicated(join_test$EMPI), ]
 
-join_test2
+bcp_positive = 
+  join_test2 %>% 
+  filter(bcp_status == "1") %>% 
+  count(bcp_status)
 ```
 Table it BCP within 14 days
 ```{r}
@@ -82,9 +87,9 @@ knitr::kable(join_test2)
 ```
 
 
-Great, we found `r nrow(join_test2)` observations of patients who have blood culture positive within the 14-day period of central line inserted. 
+Great, we found 682 observations of patients who have blood culture positive within the 14-day period of central line inserted. 
 
-Incidence of bcp in central lined patients are `r nrow(join_test2)` / `r nrow(test2)`.
+Incidence of bcp in central lined patients are 682 / `r nrow(test2)`.
 
 
 

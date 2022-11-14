@@ -98,28 +98,18 @@ join_cl_bcp =
 drop_na() %>% 
   select(EMPI, bcp_status, date.x, date.y) %>% 
   mutate(
-    duration = date.y - as.Date(date.x)) %>% 
+    date.x = as.Date(date.x),
+    duration = date.y - date.x
+    ) %>% 
   arrange(EMPI, desc(bcp_status))
   
 join_test2 = join_test[!duplicated(join_test$EMPI), ]
 
-join_test2
+bcp_positive = 
+  join_test2 %>% 
+  filter(bcp_status == "1") %>% 
+  count(bcp_status)
 ```
-
-    ## # A tibble: 1,190 × 5
-    ##          EMPI bcp_status date.x              date.y     duration
-    ##         <dbl>      <dbl> <dttm>              <date>     <drtn>  
-    ##  1 1000005895          0 2021-04-15 00:00:00 2021-03-20 -26 days
-    ##  2 1000016630          1 2020-11-06 00:00:00 2020-11-12   6 days
-    ##  3 1000050994          1 2020-03-24 00:00:00 2020-03-29   5 days
-    ##  4 1000070882          1 2021-07-28 00:00:00 2021-07-31   3 days
-    ##  5 1000073127          0 2021-08-19 00:00:00 2021-07-19 -31 days
-    ##  6 1000083897          1 2022-02-05 00:00:00 2022-02-07   2 days
-    ##  7 1000086187          0 2020-05-12 00:00:00 2020-04-29 -13 days
-    ##  8 1000087431          1 2021-07-03 00:00:00 2021-07-06   3 days
-    ##  9 1000161564          1 2020-08-10 00:00:00 2020-08-12   2 days
-    ## 10 1000227702          1 2020-06-30 00:00:00 2020-07-03   3 days
-    ## # … with 1,180 more rows
 
 Table it BCP within 14 days
 
@@ -128,10 +118,10 @@ table_1=
 knitr::kable(join_test2)
 ```
 
-Great, we found 1190 observations of patients who have blood culture
+Great, we found 682 observations of patients who have blood culture
 positive within the 14-day period of central line inserted.
 
-Incidence of bcp in central lined patients are 1190 / 4724.
+Incidence of bcp in central lined patients are 682 / 4724.
 
 Next, we look at TPN data
 
