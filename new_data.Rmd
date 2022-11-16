@@ -1,0 +1,42 @@
+---
+title: "newdata"
+author: "Jiayi Yang"
+date: "2022-11-16"
+output: html_document
+---
+```{r setup, include=FALSE}
+library(tidyverse)
+library(readxl)
+library(lubridate)
+library(dplyr)
+library(ggridges)
+```
+import the new data
+```{r, message=FALSE}
+new_data = 
+  read_excel("./LDA.xlsx", sheet = 1, range = cell_cols("A:K")) %>% 
+  filter(flo_meas_name %in% c(  'G IP NYC LDA MIDLINE DOUBLE LUMEN',
+                                'G IP NYC LDA MIDLINE SINGLE LUMEN',
+                                'G LDA PULMONARY ARTERY CATHETER/SWAN GANZ',
+                                'LDA CVC QUADRUPLE LUMEN',
+                                'LDA CVC SINGLE LUMEN',
+                                'LDA CVC TRIPLE LUMEN',
+                                'LDA DUAL LUMEN PORT',
+                                'LDA EXTERNAL URINARY CATHETER',
+                                'LDA PICC SINGLE LUMEN',
+                                'LDA PICC TRIPLE LUMEN',
+                                'LDA PUMP DEVICE',
+                                'NYC LDA PRESSURE INJURY',
+                                'RETIRED - NYC ADT TC PICC DOUBLE LUMEN')
+         ) %>% 
+  mutate(
+    placement_date = as.Date(PLACEMENT_INSTANT, "%y/%m/%d"),
+    removal_date = as.Date(REMOVAL_INSTANT, "%y/%m/%d"),
+    duration = removal_date - placement_date
+  ) %>% 
+  filter(removal_date != '2157-11-19')
+
+new_data
+```
+
+
