@@ -111,15 +111,15 @@ bcp_positive =
   count(bcp_status)
 ```
 
+Great, we found 682 observations of patients who have blood culture
+positive within the 14-day period of central line inserted.
+
 Table it BCP within 14 days
 
 ``` r
 table_1=  
 knitr::kable(join_test2)
 ```
-
-Great, we found 682 observations of patients who have blood culture
-positive within the 14-day period of central line inserted.
 
 Incidence of bcp in central lined patients are 682 / 4724.
 

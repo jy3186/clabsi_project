@@ -39,4 +39,46 @@ new_data =
 new_data
 ```
 
+We have `r nrow(new_data)` patients who have central lines inserted in our sample
 
+```{r}
+bcp_df =
+  read_excel("./CLABSI_data.xlsx", sheet = 3, range = cell_cols("A:K")) %>% 
+  arrange(EMPI) %>% 
+  select(EMPI, PROC_NAME, RESULT_TIME) %>% 
+  filter(PROC_NAME == "BLOOD CULTURE") %>% 
+  mutate(
+  status = "blood_culture_positive",
+  date = as.Date(RESULT_TIME, "%y/%m/%d")
+)  %>% 
+  distinct(EMPI, date, .keep_all = TRUE)
+bcp_df
+```
+We have `r nrow(bcp_df)` patients who have blood culture positive shown in the EMR in our sample
+
+Next, see if result_time of BCP aligns with central line insert period.
+Trying to join central_lined_df and bcp_df to see patients who are cl inserted and bcp during their central line placement period.
+
+```{r}
+join_test=
+join_cl_bcp =
+  left_join(new_data, bcp_df, by = c("EMPI")) %>%
+  mutate(
+   period_1 = interval(ymd(placement_date), ymd(removal_date)),
+    bcp_status = ifelse(date %within% period_1, 1, 0)
+  ) %>%    
+drop_na() %>% 
+  select(EMPI, bcp_status, date, placement_date, removal_date, period_1) %>% 
+  arrange(EMPI, desc(bcp_status))
+  
+join_test2 = join_test[!duplicated(join_test$EMPI), ]
+
+bcp_positive = 
+  join_test2 %>% 
+  filter(bcp_status == "1") %>% 
+  count(bcp_status)
+```
+
+Great, we found 591 observations of patients who have blood culture positive within their periods of central line inserted. 
+
+The incidence for blood culture positive in central lined patients are 591/6754 = 8.75%

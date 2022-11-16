@@ -414,6 +414,60 @@ pre code {
 ## #   FLO_MEAS_ID &lt;dbl&gt;, PLACEMENT_INSTANT &lt;dttm&gt;, REMOVAL_INSTANT &lt;dttm&gt;,
 ## #   DESCRIPTION &lt;chr&gt;, flo_meas_name &lt;chr&gt;, placement_date &lt;date&gt;,
 ## #   removal_date &lt;date&gt;, duration &lt;drtn&gt;</code></pre>
+<p>We have 6754 patients who have central lines inserted in our
+sample</p>
+<pre class="r"><code>bcp_df =
+  read_excel(&quot;./CLABSI_data.xlsx&quot;, sheet = 3, range = cell_cols(&quot;A:K&quot;)) %&gt;% 
+  arrange(EMPI) %&gt;% 
+  select(EMPI, PROC_NAME, RESULT_TIME) %&gt;% 
+  filter(PROC_NAME == &quot;BLOOD CULTURE&quot;) %&gt;% 
+  mutate(
+  status = &quot;blood_culture_positive&quot;,
+  date = as.Date(RESULT_TIME, &quot;%y/%m/%d&quot;)
+)  %&gt;% 
+  distinct(EMPI, date, .keep_all = TRUE)</code></pre>
+<pre><code>## Warning in as.POSIXlt.POSIXct(x, tz = tz): unknown timezone &#39;%y/%m/%d&#39;</code></pre>
+<pre class="r"><code>bcp_df</code></pre>
+<pre><code>## # A tibble: 2,546 × 5
+##          EMPI PROC_NAME     RESULT_TIME         status                date      
+##         &lt;dbl&gt; &lt;chr&gt;         &lt;dttm&gt;              &lt;chr&gt;                 &lt;date&gt;    
+##  1 1000005895 BLOOD CULTURE 2021-03-20 09:36:00 blood_culture_positi… 2021-03-20
+##  2 1000005895 BLOOD CULTURE 2021-05-06 09:39:00 blood_culture_positi… 2021-05-06
+##  3 1000005895 BLOOD CULTURE 2021-05-11 08:51:00 blood_culture_positi… 2021-05-11
+##  4 1000005895 BLOOD CULTURE 2021-05-03 12:48:00 blood_culture_positi… 2021-05-03
+##  5 1000016630 BLOOD CULTURE 2020-11-12 15:04:00 blood_culture_positi… 2020-11-12
+##  6 1000050994 BLOOD CULTURE 2020-03-29 11:02:00 blood_culture_positi… 2020-03-29
+##  7 1000050994 BLOOD CULTURE 2020-03-28 10:29:00 blood_culture_positi… 2020-03-28
+##  8 1000070882 BLOOD CULTURE 2021-07-31 12:06:00 blood_culture_positi… 2021-07-31
+##  9 1000070882 BLOOD CULTURE 2021-08-01 14:21:00 blood_culture_positi… 2021-08-01
+## 10 1000073127 BLOOD CULTURE 2021-07-19 11:24:00 blood_culture_positi… 2021-07-19
+## # … with 2,536 more rows</code></pre>
+<p>We have 2546 patients who have blood culture positive shown in the
+EMR in our sample</p>
+<p>Next, see if result_time of BCP aligns with central line insert
+period. Trying to join central_lined_df and bcp_df to see patients who
+are cl inserted and bcp during their central line placement period.</p>
+<pre class="r"><code>join_test=
+join_cl_bcp =
+  left_join(new_data, bcp_df, by = c(&quot;EMPI&quot;)) %&gt;%
+  mutate(
+   period_1 = interval(ymd(placement_date), ymd(removal_date)),
+    bcp_status = ifelse(date %within% period_1, 1, 0)
+  ) %&gt;%    
+drop_na() %&gt;% 
+  select(EMPI, bcp_status, date, placement_date, removal_date, period_1) %&gt;% 
+  arrange(EMPI, desc(bcp_status))
+  
+join_test2 = join_test[!duplicated(join_test$EMPI), ]
+
+bcp_positive = 
+  join_test2 %&gt;% 
+  filter(bcp_status == &quot;1&quot;) %&gt;% 
+  count(bcp_status)</code></pre>
+<p>Great, we found 591 observations of patients who have blood culture
+positive within their periods of central line inserted.</p>
+<p>The incidence for blood culture positive in central lined patients
+are 591/6754 = 8.75%</p>
 
 
 
