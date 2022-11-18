@@ -73,12 +73,21 @@ drop_na() %>%
   
 join_test2 = join_test[!duplicated(join_test$EMPI), ]
 
-bcp_positive = 
-  join_test2 %>% 
-  filter(bcp_status == "1") %>% 
-  count(bcp_status)
+table(join_test2$bcp_status)
 ```
 
 Great, we found 591 observations of patients who have blood culture positive within their periods of central line inserted. 
 
 The incidence for blood culture positive in central lined patients are 591/6754 = 8.75%
+
+Now we try to match controls to cases by first full join the bcp_status table (join_test2) with our original new_data table:
+```{r}
+full_table = 
+  full_join(new_data, join_test2, by = c("EMPI")) 
+full_table2 = full_table[!duplicated(full_table$EMPI), ] 
+
+full_table2$bcp_status[is.na(full_table2$bcp_status)] <- 0
+
+table(full_table2$bcp_status)
+```
+We have 591 cases and 1844 unique controls to pool from. `full_table2` is the full table until now.
