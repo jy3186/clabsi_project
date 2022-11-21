@@ -107,7 +107,7 @@ full_table3 = full_table2 %>%
   drop_na(matching_period)
 
 set.seed(1234)
-match.it <- matchit(bcp_status ~ matching_period +sex_c, data = full_table3, method="nearest", ratio=1)
+match.it <- matchit(bcp_status ~ matching_period, data = full_table3, method="nearest", ratio=1)
 matched_df <- summary(match.it)
 
 knitr::kable(matched_df$nn, digits = 2, align = 'c', 
@@ -116,4 +116,10 @@ knitr::kable(matched_df$nn, digits = 2, align = 'c',
 ```
 Have a warning: fewer controls than cases, not all cases will get a match
 
+??save the matched dataset into a new dataframe named `df.match`
+```{r}
+df.match <- match.data(match.it)[1:ncol(full_table3)]
+rm(matched_df)
+```
+df.match has 568 observations include 284 cases and 284 controls
 
