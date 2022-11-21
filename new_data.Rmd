@@ -1,8 +1,8 @@
 ---
-title: "newdata"
+title: "New Data Analysis"
 author: "Jiayi Yang"
 date: "2022-11-16"
-output: html_document
+output: github_document
 ---
 ```{r setup, include=FALSE}
 library(tidyverse)
@@ -11,6 +11,10 @@ library(lubridate)
 library(dplyr)
 library(ggridges)
 ```
+```{r}
+library("MatchIt")
+```
+
 import the new data
 ```{r, message=FALSE}
 new_data = 
@@ -71,7 +75,10 @@ drop_na() %>%
   select(EMPI, bcp_status, date, placement_date, removal_date, period_1) %>% 
   arrange(EMPI, desc(bcp_status))
   
-join_test2 = join_test[!duplicated(join_test$EMPI), ]
+join_test2 = join_test[!duplicated(join_test$EMPI), ] %>% 
+  mutate(
+    matching_period = date - placement_date
+  )
 
 table(join_test2$bcp_status)
 ```
@@ -91,3 +98,22 @@ full_table2$bcp_status[is.na(full_table2$bcp_status)] <- 0
 table(full_table2$bcp_status)
 ```
 We have 591 cases and 1844 unique controls to pool from. `full_table2` is the full table until now.
+
+Matching by variable `matching_period` which stands for the time between central line placement and tested blood culture positive
+
+by MatchIt:
+```{r}
+full_table3 = full_table2 %>% 
+  drop_na(matching_period)
+
+set.seed(1234)
+match.it <- matchit(bcp_status ~ matching_period +sex_c, data = full_table3, method="nearest", ratio=1)
+matched_df <- summary(match.it)
+
+knitr::kable(matched_df$nn, digits = 2, align = 'c', 
+      caption = 'Table 2: Sample sizes')
+
+```
+Have a warning: fewer controls than cases, not all cases will get a match
+
+

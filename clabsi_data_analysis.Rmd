@@ -75,10 +75,8 @@ drop_na() %>%
   
 join_test2 = join_test[!duplicated(join_test$EMPI), ]
 
-bcp_positive = 
-  join_test2 %>% 
-  filter(bcp_status == "1") %>% 
-  count(bcp_status)
+table(join_test2$bcp_status)
+
 ```
 Great, we found 682 observations of patients who have blood culture positive within the 14-day period of central line inserted. 
 
