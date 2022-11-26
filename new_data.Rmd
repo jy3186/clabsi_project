@@ -120,6 +120,31 @@ Have a warning: fewer controls than cases, not all cases will get a match
 ```{r}
 df.match <- match.data(match.it)[1:ncol(full_table3)]
 rm(matched_df)
+
+df.match
 ```
 df.match has 568 observations include 284 cases and 284 controls
+
+Look at the exposure TPN status
+Next, we look at TPN data
+```{r}
+tpn_df =
+   read_excel("./CLABSI_data.xlsx", sheet = 4, range = cell_cols("A:K")) %>% 
+  arrange(EMPI) %>% 
+  select(EMPI, START_DATE, END_DATE) %>% 
+  mutate(
+    status = "tpn"
+  )
+join_tpn = 
+  left_join(df.match, tpn_df, by = c("EMPI")) %>% 
+  mutate(
+    tpn_status = ifelse(START_DATE %within% period_1, 1, 0)
+  ) %>% 
+  drop_na() %>% 
+  select(EMPI, bcp_status, period_1, START_DATE, END_DATE, tpn_status) %>% 
+  distinct(EMPI, tpn_status, .keep_all = TRUE)
+
+join_tpn
+  
+```
 
