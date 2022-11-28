@@ -60,6 +60,10 @@ new_data
     ## #   DESCRIPTION <chr>, flo_meas_name <chr>, placement_date <date>,
     ## #   removal_date <date>, duration <drtn>
 
+``` r
+new_data2 = new_data[!duplicated(new_data$EMPI), ] 
+```
+
 We have 6754 patients who have central lines inserted in our sample
 
 ``` r
@@ -111,21 +115,22 @@ join_cl_bcp =
    period_1 = interval(ymd(placement_date), ymd(removal_date)),
     bcp_status = ifelse(date %within% period_1, 1, 0)
   ) %>%    
-drop_na() %>% 
+
   select(EMPI, bcp_status, date, placement_date, removal_date, period_1) %>% 
   arrange(EMPI, desc(bcp_status))
   
 join_test2 = join_test[!duplicated(join_test$EMPI), ] %>% 
   mutate(
-    matching_period = date - placement_date
+    matching_period = date - placement_date,
+    new_bcp_status = ifelse(is.na(bcp_status), 0, bcp_status)
   )
 
-table(join_test2$bcp_status)
+table(join_test2$new_bcp_status)
 ```
 
     ## 
-    ##   0   1 
-    ## 284 591
+    ##    0    1 
+    ## 1840  595
 
 Great, we found 591 observations of patients who have blood culture
 positive within their periods of central line inserted.
@@ -141,14 +146,14 @@ full_table =
   full_join(new_data, join_test2, by = c("EMPI")) 
 full_table2 = full_table[!duplicated(full_table$EMPI), ] 
 
-full_table2$bcp_status[is.na(full_table2$bcp_status)] <- 0
+full_table2$bcp_status[is.na(full_table2$new_bcp_status)] <- 0
 
-table(full_table2$bcp_status)
+table(full_table2$new_bcp_status)
 ```
 
     ## 
     ##    0    1 
-    ## 1844  591
+    ## 1840  595
 
 We have 591 cases and 1844 unique controls to pool from. `full_table2`
 is the full table until now.
@@ -160,16 +165,12 @@ by MatchIt:
 
 ``` r
 full_table3 = full_table2 %>% 
-  drop_na(matching_period)
+  mutate(
+    new_matching_period = ifelse(is.na(matching_period), 0, matching_period)
+  )
 
 set.seed(1234)
-match.it <- matchit(bcp_status ~ matching_period, data = full_table3, method="nearest", ratio=1)
-```
-
-    ## Warning: Fewer control units than treated units; not all treated units will get
-    ## a match.
-
-``` r
+match.it <- matchit(new_bcp_status ~ new_matching_period, data = full_table3, method="nearest", ratio=1)
 matched_df <- summary(match.it)
 
 knitr::kable(matched_df$nn, digits = 2, align = 'c', 
@@ -178,19 +179,20 @@ knitr::kable(matched_df$nn, digits = 2, align = 'c',
 
 |               | Control | Treated |
 |:--------------|:-------:|:-------:|
-| All (ESS)     |   284   |   591   |
-| All           |   284   |   591   |
-| Matched (ESS) |   284   |   284   |
-| Matched       |   284   |   284   |
-| Unmatched     |    0    |   307   |
+| All (ESS)     |  1840   |   595   |
+| All           |  1840   |   595   |
+| Matched (ESS) |   595   |   595   |
+| Matched       |   595   |   595   |
+| Unmatched     |  1245   |    0    |
 | Discarded     |    0    |    0    |
 
 Table 2: Sample sizes
 
-Have a warning: fewer controls than cases, not all cases will get a
-match
+We have 595 cases and 595 matched controls by their matching period(time
+of central line inserted to time of bcp). There are 1245 remained
+unmatched, the total of the sample population is 2435.
 
-??save the matched dataset into a new dataframe named `df.match`
+save the matched dataset into a new dataframe named `df.match`
 
 ``` r
 df.match <- match.data(match.it)[1:ncol(full_table3)]
@@ -204,27 +206,28 @@ df.match %>%
 
     ## Warning in as.POSIXlt.POSIXct(x, tz = tz): unknown timezone '%y/%m/%d'
 
-    ## # A tibble: 568 × 20
+    ## # A tibble: 1,190 × 22
     ##          EMPI BIRTH_DATE sex_c PAT_ENC…¹ hosp_admsn_time     hosp_disch_time    
     ##         <dbl> <date>     <dbl>     <dbl> <dttm>              <dttm>             
-    ##  1 1000087431 1945-05-18     1 150005039 2021-07-02 15:08:00 2021-07-18 16:52:00
-    ##  2 1000005895 1968-01-01     1 138057876 2021-03-11 23:31:00 2021-05-09 01:03:00
-    ##  3 1000016630 1980-01-06     2 128010373 2020-10-30 10:40:00 2020-11-15 09:33:00
-    ##  4 1000086187 1949-01-22     2 174308016 2021-11-29 16:05:00 2022-01-10 18:10:00
-    ##  5 1000227702 1989-12-31     2 121992297 2020-06-20 16:04:00 2020-08-07 16:56:00
-    ##  6 1000248063 1939-07-19     1 118897240 2020-03-29 03:48:00 2020-05-08 18:32:00
-    ##  7 1000073127 1987-06-12     1 150857235 2021-07-15 11:16:00 2021-08-20 16:43:00
-    ##  8 1000294086 1932-09-12     2 173101197 2021-11-21 04:11:00 2021-12-28 11:19:00
-    ##  9 1000395196 1927-06-02     1 134596337 2021-01-25 20:56:00 2021-03-09 17:32:00
-    ## 10 1000302577 1930-05-22     2 121264767 2020-06-16 05:42:00 2020-08-05 17:27:00
-    ## # … with 558 more rows, 14 more variables: FLO_MEAS_ID <dbl>,
+    ##  1 1000039263 1937-04-28     2 115794137 2020-02-05 01:08:00 2020-04-01 00:27:00
+    ##  2 1000087431 1945-05-18     1 150005039 2021-07-02 15:08:00 2021-07-18 16:52:00
+    ##  3 1000092404 1942-03-24     1 190464289 2022-05-07 10:23:00 2022-05-21 05:15:00
+    ##  4 1000172922 1950-09-19     1 186868549 2022-03-31 22:09:00 2022-04-07 03:03:00
+    ##  5 1000178374 1987-03-12     2 179436960 2022-01-10 02:25:00 2022-01-20 18:35:00
+    ##  6 1000018092 1953-10-27     1 185024635 2022-03-12 19:48:00 2022-04-26 16:22:00
+    ##  7 1000135489 1989-11-02     1 127547323 2020-10-01 10:00:00 2020-10-08 17:09:00
+    ##  8 1000016630 1980-01-06     2 128010373 2020-10-30 10:40:00 2020-11-15 09:33:00
+    ##  9 1000070882 1958-08-08     2 151803384 2021-07-28 00:33:00 2021-08-12 19:00:00
+    ## 10 1000086187 1949-01-22     2 174308016 2021-11-29 16:05:00 2022-01-10 18:10:00
+    ## # … with 1,180 more rows, 16 more variables: FLO_MEAS_ID <dbl>,
     ## #   PLACEMENT_INSTANT <dttm>, REMOVAL_INSTANT <dttm>, DESCRIPTION <chr>,
     ## #   flo_meas_name <chr>, placement_date.x <date>, removal_date.x <date>,
     ## #   duration <drtn>, bcp_status <dbl>, date <date>, placement_date.y <date>,
-    ## #   removal_date.y <date>, period_1 <Interval>, matching_period <drtn>, and
-    ## #   abbreviated variable name ¹​PAT_ENC_CSN_ID
+    ## #   removal_date.y <date>, period_1 <Interval>, matching_period <drtn>,
+    ## #   new_bcp_status <dbl>, new_matching_period <dbl>, and abbreviated variable
+    ## #   name ¹​PAT_ENC_CSN_ID
 
-df.match has 568 observations include 284 cases and 284 controls
+df.match has 1190 observations include 595 cases and 595 controls
 
 demographic analysis: age, gender
 
@@ -253,7 +256,7 @@ pop = sample(x = 1:100, size = 20)
 ggplot(df.match, aes(x = ifelse(test = sex_c == 1, yes = -pop, no = pop), y = BIRTH_DATE, fill = sex_c)) +
   geom_col() +
   scale_x_symmetric(labels = abs) +
-  labs(x = "Population")
+  labs(x = "Population") 
 ```
 
 ![](new_data_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
@@ -273,14 +276,13 @@ join_tpn =
   mutate(
     tpn_status = ifelse(START_DATE %within% period_1, 1, 0)
   ) %>% 
-  drop_na() %>% 
-  select(EMPI, bcp_status, period_1, START_DATE, END_DATE, tpn_status) %>% 
+  select(EMPI, new_bcp_status, period_1, START_DATE, END_DATE, tpn_status) %>% 
   distinct(EMPI, tpn_status, .keep_all = TRUE)
-join_tpn <- table(join_tpn$tpn_status, join_tpn$bcp_status)
+join_tpn <- table(join_tpn$tpn_status, join_tpn$new_bcp_status)
 join_tpn
 ```
 
     ##    
     ##      0  1
-    ##   0 17  7
-    ##   1 12  8
+    ##   0 28 22
+    ##   1 20 18

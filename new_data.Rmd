@@ -43,6 +43,7 @@ new_data =
   filter(removal_date != '2157-11-19')
 
 new_data
+new_data2 = new_data[!duplicated(new_data$EMPI), ] 
 ```
 
 We have `r nrow(new_data)` patients who have central lines inserted in our sample
@@ -73,16 +74,17 @@ join_cl_bcp =
    period_1 = interval(ymd(placement_date), ymd(removal_date)),
     bcp_status = ifelse(date %within% period_1, 1, 0)
   ) %>%    
-drop_na() %>% 
+
   select(EMPI, bcp_status, date, placement_date, removal_date, period_1) %>% 
   arrange(EMPI, desc(bcp_status))
   
 join_test2 = join_test[!duplicated(join_test$EMPI), ] %>% 
   mutate(
-    matching_period = date - placement_date
+    matching_period = date - placement_date,
+    new_bcp_status = ifelse(is.na(bcp_status), 0, bcp_status)
   )
 
-table(join_test2$bcp_status)
+table(join_test2$new_bcp_status)
 ```
 
 Great, we found 591 observations of patients who have blood culture positive within their periods of central line inserted. 
@@ -95,9 +97,9 @@ full_table =
   full_join(new_data, join_test2, by = c("EMPI")) 
 full_table2 = full_table[!duplicated(full_table$EMPI), ] 
 
-full_table2$bcp_status[is.na(full_table2$bcp_status)] <- 0
+full_table2$bcp_status[is.na(full_table2$new_bcp_status)] <- 0
 
-table(full_table2$bcp_status)
+table(full_table2$new_bcp_status)
 ```
 We have 591 cases and 1844 unique controls to pool from. `full_table2` is the full table until now.
 
@@ -106,19 +108,21 @@ Matching by variable `matching_period` which stands for the time between central
 by MatchIt:
 ```{r}
 full_table3 = full_table2 %>% 
-  drop_na(matching_period)
+  mutate(
+    new_matching_period = ifelse(is.na(matching_period), 0, matching_period)
+  )
 
 set.seed(1234)
-match.it <- matchit(bcp_status ~ matching_period, data = full_table3, method="nearest", ratio=1)
+match.it <- matchit(new_bcp_status ~ new_matching_period, data = full_table3, method="nearest", ratio=1)
 matched_df <- summary(match.it)
 
 knitr::kable(matched_df$nn, digits = 2, align = 'c', 
       caption = 'Table 2: Sample sizes')
 
 ```
-Have a warning: fewer controls than cases, not all cases will get a match
+We have 595 cases and 595 matched controls by their matching period(time of central line inserted to time of bcp). There are 1245 remained unmatched, the total of the sample population is 2435.
 
-??save the matched dataset into a new dataframe named `df.match`
+save the matched dataset into a new dataframe named `df.match`
 ```{r}
 df.match <- match.data(match.it)[1:ncol(full_table3)]
 rm(matched_df)
@@ -128,7 +132,7 @@ df.match %>%
     BIRTH_DATE = as.Date(BIRTH_DATE, "%y/%m/%d")
   )
 ```
-df.match has 568 observations include 284 cases and 284 controls
+df.match has 1190 observations include 595 cases and 595 controls
 
 demographic analysis: age, gender
 ```{r}
@@ -142,7 +146,7 @@ pop = sample(x = 1:100, size = 20)
 ggplot(df.match, aes(x = ifelse(test = sex_c == 1, yes = -pop, no = pop), y = BIRTH_DATE, fill = sex_c)) +
   geom_col() +
   scale_x_symmetric(labels = abs) +
-  labs(x = "Population")
+  labs(x = "Population") 
 ```
 
 Look at the exposure TPN status
@@ -160,10 +164,9 @@ join_tpn =
   mutate(
     tpn_status = ifelse(START_DATE %within% period_1, 1, 0)
   ) %>% 
-  drop_na() %>% 
-  select(EMPI, bcp_status, period_1, START_DATE, END_DATE, tpn_status) %>% 
+  select(EMPI, new_bcp_status, period_1, START_DATE, END_DATE, tpn_status) %>% 
   distinct(EMPI, tpn_status, .keep_all = TRUE)
-join_tpn <- table(join_tpn$tpn_status, join_tpn$bcp_status)
+join_tpn <- table(join_tpn$tpn_status, join_tpn$new_bcp_status)
 join_tpn
 
   
