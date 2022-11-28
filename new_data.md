@@ -163,7 +163,7 @@ full_table3 = full_table2 %>%
   drop_na(matching_period)
 
 set.seed(1234)
-match.it <- matchit(bcp_status ~ matching_period +sex_c, data = full_table3, method="nearest", ratio=1)
+match.it <- matchit(bcp_status ~ matching_period, data = full_table3, method="nearest", ratio=1)
 ```
 
     ## Warning: Fewer control units than treated units; not all treated units will get
@@ -189,3 +189,98 @@ Table 2: Sample sizes
 
 Have a warning: fewer controls than cases, not all cases will get a
 match
+
+??save the matched dataset into a new dataframe named `df.match`
+
+``` r
+df.match <- match.data(match.it)[1:ncol(full_table3)]
+rm(matched_df)
+
+df.match %>% 
+  mutate(
+    BIRTH_DATE = as.Date(BIRTH_DATE, "%y/%m/%d")
+  )
+```
+
+    ## Warning in as.POSIXlt.POSIXct(x, tz = tz): unknown timezone '%y/%m/%d'
+
+    ## # A tibble: 568 × 20
+    ##          EMPI BIRTH_DATE sex_c PAT_ENC…¹ hosp_admsn_time     hosp_disch_time    
+    ##         <dbl> <date>     <dbl>     <dbl> <dttm>              <dttm>             
+    ##  1 1000087431 1945-05-18     1 150005039 2021-07-02 15:08:00 2021-07-18 16:52:00
+    ##  2 1000005895 1968-01-01     1 138057876 2021-03-11 23:31:00 2021-05-09 01:03:00
+    ##  3 1000016630 1980-01-06     2 128010373 2020-10-30 10:40:00 2020-11-15 09:33:00
+    ##  4 1000086187 1949-01-22     2 174308016 2021-11-29 16:05:00 2022-01-10 18:10:00
+    ##  5 1000227702 1989-12-31     2 121992297 2020-06-20 16:04:00 2020-08-07 16:56:00
+    ##  6 1000248063 1939-07-19     1 118897240 2020-03-29 03:48:00 2020-05-08 18:32:00
+    ##  7 1000073127 1987-06-12     1 150857235 2021-07-15 11:16:00 2021-08-20 16:43:00
+    ##  8 1000294086 1932-09-12     2 173101197 2021-11-21 04:11:00 2021-12-28 11:19:00
+    ##  9 1000395196 1927-06-02     1 134596337 2021-01-25 20:56:00 2021-03-09 17:32:00
+    ## 10 1000302577 1930-05-22     2 121264767 2020-06-16 05:42:00 2020-08-05 17:27:00
+    ## # … with 558 more rows, 14 more variables: FLO_MEAS_ID <dbl>,
+    ## #   PLACEMENT_INSTANT <dttm>, REMOVAL_INSTANT <dttm>, DESCRIPTION <chr>,
+    ## #   flo_meas_name <chr>, placement_date.x <date>, removal_date.x <date>,
+    ## #   duration <drtn>, bcp_status <dbl>, date <date>, placement_date.y <date>,
+    ## #   removal_date.y <date>, period_1 <Interval>, matching_period <drtn>, and
+    ## #   abbreviated variable name ¹​PAT_ENC_CSN_ID
+
+df.match has 568 observations include 284 cases and 284 controls
+
+demographic analysis: age, gender
+
+``` r
+library(lemon)
+```
+
+    ## 
+    ## Attaching package: 'lemon'
+
+    ## The following object is masked from 'package:purrr':
+    ## 
+    ##     %||%
+
+    ## The following object is masked from 'package:ggplot2':
+    ## 
+    ##     element_render
+
+``` r
+   age <- function(BIRTH_DATE, on.day=today()) {
+    intvl <- interval(BIRTH_DATE, on.day)
+    prd <- as.period(intvl)
+    return(prd@year)
+   }
+pop = sample(x = 1:100, size = 20)
+ggplot(df.match, aes(x = ifelse(test = sex_c == 1, yes = -pop, no = pop), y = BIRTH_DATE, fill = sex_c)) +
+  geom_col() +
+  scale_x_symmetric(labels = abs) +
+  labs(x = "Population")
+```
+
+![](new_data_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
+
+Look at the exposure TPN status Next, we look at TPN data
+
+``` r
+tpn_df =
+   read_excel("./CLABSI_data.xlsx", sheet = 4, range = cell_cols("A:K")) %>% 
+  arrange(EMPI) %>% 
+  select(EMPI, START_DATE, END_DATE) %>% 
+  mutate(
+    status = "tpn"
+  )
+join_tpn = 
+  left_join(df.match, tpn_df, by = c("EMPI")) %>% 
+  mutate(
+    tpn_status = ifelse(START_DATE %within% period_1, 1, 0)
+  ) %>% 
+  drop_na() %>% 
+  select(EMPI, bcp_status, period_1, START_DATE, END_DATE, tpn_status) %>% 
+  distinct(EMPI, tpn_status, .keep_all = TRUE)
+join_tpn <- table(join_tpn$tpn_status, join_tpn$bcp_status)
+join_tpn
+```
+
+    ##    
+    ##      0  1
+    ##   0 17  7
+    ##   1 12  8

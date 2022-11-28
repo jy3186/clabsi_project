@@ -10,10 +10,12 @@ library(readxl)
 library(lubridate)
 library(dplyr)
 library(ggridges)
+library(ggplot2)
 ```
 ```{r}
 library("MatchIt")
 ```
+
 
 import the new data
 ```{r, message=FALSE}
@@ -121,9 +123,27 @@ Have a warning: fewer controls than cases, not all cases will get a match
 df.match <- match.data(match.it)[1:ncol(full_table3)]
 rm(matched_df)
 
-df.match
+df.match %>% 
+  mutate(
+    BIRTH_DATE = as.Date(BIRTH_DATE, "%y/%m/%d")
+  )
 ```
 df.match has 568 observations include 284 cases and 284 controls
+
+demographic analysis: age, gender
+```{r}
+library(lemon)
+   age <- function(BIRTH_DATE, on.day=today()) {
+    intvl <- interval(BIRTH_DATE, on.day)
+    prd <- as.period(intvl)
+    return(prd@year)
+   }
+pop = sample(x = 1:100, size = 20)
+ggplot(df.match, aes(x = ifelse(test = sex_c == 1, yes = -pop, no = pop), y = BIRTH_DATE, fill = sex_c)) +
+  geom_col() +
+  scale_x_symmetric(labels = abs) +
+  labs(x = "Population")
+```
 
 Look at the exposure TPN status
 Next, we look at TPN data
@@ -143,8 +163,9 @@ join_tpn =
   drop_na() %>% 
   select(EMPI, bcp_status, period_1, START_DATE, END_DATE, tpn_status) %>% 
   distinct(EMPI, tpn_status, .keep_all = TRUE)
-
+join_tpn <- table(join_tpn$tpn_status, join_tpn$bcp_status)
 join_tpn
+
   
 ```
 
