@@ -87,9 +87,9 @@ join_test2 = join_test[!duplicated(join_test$EMPI), ] %>%
 table(join_test2$new_bcp_status)
 ```
 
-Great, we found 591 observations of patients who have blood culture positive within their periods of central line inserted. 
+Great, we found 595 observations of patients who have blood culture positive within their periods of central line inserted. 
 
-The incidence for blood culture positive in central lined patients are 591/6754 = 8.75%
+The incidence for blood culture positive in central lined patients are 595/6754 = 8.8%
 
 Now we try to match controls to cases by first full join the bcp_status table (join_test2) with our original new_data table:
 ```{r}
@@ -101,7 +101,7 @@ full_table2$bcp_status[is.na(full_table2$new_bcp_status)] <- 0
 
 table(full_table2$new_bcp_status)
 ```
-We have 591 cases and 1844 unique controls to pool from. `full_table2` is the full table until now.
+We have 595 cases and 1840 unique controls to pool from. `full_table2` is the full table until now.
 
 Matching by variable `matching_period` which stands for the time between central line placement and tested blood culture positive
 
@@ -129,8 +129,11 @@ rm(matched_df)
 
 df.match %>% 
   mutate(
-    BIRTH_DATE = as.Date(BIRTH_DATE, "%y/%m/%d")
-  )
+    BIRTH_DATE = as.Date(BIRTH_DATE, "%y/%m/%d"),
+    sex_c = case_when(sex_c == 1 ~ "Male",
+              sex_c == 2 ~ "Female") %>% 
+      as.factor()
+  ) 
 ```
 df.match has 1190 observations include 595 cases and 595 controls
 
@@ -143,7 +146,7 @@ library(lemon)
     return(prd@year)
    }
 pop = sample(x = 1:100, size = 20)
-ggplot(df.match, aes(x = ifelse(test = sex_c == 1, yes = -pop, no = pop), y = BIRTH_DATE, fill = sex_c)) +
+ggplot(df.match, aes(x = ifelse(test = sex_c == "Male", yes = -pop, no = pop), y = BIRTH_DATE, fill = sex_c)) +
   geom_col() +
   scale_x_symmetric(labels = abs) +
   labs(x = "Population") 
@@ -165,10 +168,11 @@ join_tpn =
     tpn_status = ifelse(START_DATE %within% period_1, 1, 0)
   ) %>% 
   select(EMPI, new_bcp_status, period_1, START_DATE, END_DATE, tpn_status) %>% 
-  distinct(EMPI, tpn_status, .keep_all = TRUE)
-join_tpn <- table(join_tpn$tpn_status, join_tpn$new_bcp_status)
+  mutate(
+    new_tpn_status = ifelse(is.na(tpn_status), 0, tpn_status)
+  ) %>% 
+    distinct(EMPI, new_tpn_status, .keep_all = TRUE) %>% 
+    janitor::tabyl(new_tpn_status, new_bcp_status)
 join_tpn
-
-  
 ```
-
+This is the 2*2 table of exposure on the left, outcome on the right.

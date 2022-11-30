@@ -132,11 +132,11 @@ table(join_test2$new_bcp_status)
     ##    0    1 
     ## 1840  595
 
-Great, we found 591 observations of patients who have blood culture
+Great, we found 595 observations of patients who have blood culture
 positive within their periods of central line inserted.
 
 The incidence for blood culture positive in central lined patients are
-591/6754 = 8.75%
+595/6754 = 8.8%
 
 Now we try to match controls to cases by first full join the bcp_status
 table (join_test2) with our original new_data table:
@@ -155,7 +155,7 @@ table(full_table2$new_bcp_status)
     ##    0    1 
     ## 1840  595
 
-We have 591 cases and 1844 unique controls to pool from. `full_table2`
+We have 595 cases and 1840 unique controls to pool from. `full_table2`
 is the full table until now.
 
 Matching by variable `matching_period` which stands for the time between
@@ -200,25 +200,28 @@ rm(matched_df)
 
 df.match %>% 
   mutate(
-    BIRTH_DATE = as.Date(BIRTH_DATE, "%y/%m/%d")
-  )
+    BIRTH_DATE = as.Date(BIRTH_DATE, "%y/%m/%d"),
+    sex_c = case_when(sex_c == 1 ~ "Male",
+              sex_c == 2 ~ "Female") %>% 
+      as.factor()
+  ) 
 ```
 
     ## Warning in as.POSIXlt.POSIXct(x, tz = tz): unknown timezone '%y/%m/%d'
 
     ## # A tibble: 1,190 × 22
-    ##          EMPI BIRTH_DATE sex_c PAT_ENC…¹ hosp_admsn_time     hosp_disch_time    
-    ##         <dbl> <date>     <dbl>     <dbl> <dttm>              <dttm>             
-    ##  1 1000039263 1937-04-28     2 115794137 2020-02-05 01:08:00 2020-04-01 00:27:00
-    ##  2 1000087431 1945-05-18     1 150005039 2021-07-02 15:08:00 2021-07-18 16:52:00
-    ##  3 1000092404 1942-03-24     1 190464289 2022-05-07 10:23:00 2022-05-21 05:15:00
-    ##  4 1000172922 1950-09-19     1 186868549 2022-03-31 22:09:00 2022-04-07 03:03:00
-    ##  5 1000178374 1987-03-12     2 179436960 2022-01-10 02:25:00 2022-01-20 18:35:00
-    ##  6 1000018092 1953-10-27     1 185024635 2022-03-12 19:48:00 2022-04-26 16:22:00
-    ##  7 1000135489 1989-11-02     1 127547323 2020-10-01 10:00:00 2020-10-08 17:09:00
-    ##  8 1000016630 1980-01-06     2 128010373 2020-10-30 10:40:00 2020-11-15 09:33:00
-    ##  9 1000070882 1958-08-08     2 151803384 2021-07-28 00:33:00 2021-08-12 19:00:00
-    ## 10 1000086187 1949-01-22     2 174308016 2021-11-29 16:05:00 2022-01-10 18:10:00
+    ##          EMPI BIRTH_DATE sex_c  PAT_EN…¹ hosp_admsn_time     hosp_disch_time    
+    ##         <dbl> <date>     <fct>     <dbl> <dttm>              <dttm>             
+    ##  1 1000039263 1937-04-28 Female   1.16e8 2020-02-05 01:08:00 2020-04-01 00:27:00
+    ##  2 1000087431 1945-05-18 Male     1.50e8 2021-07-02 15:08:00 2021-07-18 16:52:00
+    ##  3 1000092404 1942-03-24 Male     1.90e8 2022-05-07 10:23:00 2022-05-21 05:15:00
+    ##  4 1000172922 1950-09-19 Male     1.87e8 2022-03-31 22:09:00 2022-04-07 03:03:00
+    ##  5 1000178374 1987-03-12 Female   1.79e8 2022-01-10 02:25:00 2022-01-20 18:35:00
+    ##  6 1000018092 1953-10-27 Male     1.85e8 2022-03-12 19:48:00 2022-04-26 16:22:00
+    ##  7 1000135489 1989-11-02 Male     1.28e8 2020-10-01 10:00:00 2020-10-08 17:09:00
+    ##  8 1000016630 1980-01-06 Female   1.28e8 2020-10-30 10:40:00 2020-11-15 09:33:00
+    ##  9 1000070882 1958-08-08 Female   1.52e8 2021-07-28 00:33:00 2021-08-12 19:00:00
+    ## 10 1000086187 1949-01-22 Female   1.74e8 2021-11-29 16:05:00 2022-01-10 18:10:00
     ## # … with 1,180 more rows, 16 more variables: FLO_MEAS_ID <dbl>,
     ## #   PLACEMENT_INSTANT <dttm>, REMOVAL_INSTANT <dttm>, DESCRIPTION <chr>,
     ## #   flo_meas_name <chr>, placement_date.x <date>, removal_date.x <date>,
@@ -253,7 +256,7 @@ library(lemon)
     return(prd@year)
    }
 pop = sample(x = 1:100, size = 20)
-ggplot(df.match, aes(x = ifelse(test = sex_c == 1, yes = -pop, no = pop), y = BIRTH_DATE, fill = sex_c)) +
+ggplot(df.match, aes(x = ifelse(test = sex_c == "Male", yes = -pop, no = pop), y = BIRTH_DATE, fill = sex_c)) +
   geom_col() +
   scale_x_symmetric(labels = abs) +
   labs(x = "Population") 
@@ -277,12 +280,16 @@ join_tpn =
     tpn_status = ifelse(START_DATE %within% period_1, 1, 0)
   ) %>% 
   select(EMPI, new_bcp_status, period_1, START_DATE, END_DATE, tpn_status) %>% 
-  distinct(EMPI, tpn_status, .keep_all = TRUE)
-join_tpn <- table(join_tpn$tpn_status, join_tpn$new_bcp_status)
+  mutate(
+    new_tpn_status = ifelse(is.na(tpn_status), 0, tpn_status)
+  ) %>% 
+    distinct(EMPI, new_tpn_status, .keep_all = TRUE) %>% 
+    janitor::tabyl(new_tpn_status, new_bcp_status)
 join_tpn
 ```
 
-    ##    
-    ##      0  1
-    ##   0 28 22
-    ##   1 20 18
+    ##  new_tpn_status   0   1
+    ##               0 592 589
+    ##               1  20  18
+
+This is the 2\*2 table of exposure on the left, outcome on the right.
