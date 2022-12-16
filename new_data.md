@@ -113,10 +113,11 @@ join_cl_bcp =
   left_join(new_data, bcp_df, by = c("EMPI")) %>%
   mutate(
    period_1 = interval(ymd(placement_date), ymd(removal_date)),
+   cl_duration_time = difftime(ymd(removal_date), ymd(placement_date), units="days"),
     bcp_status = ifelse(date %within% period_1, 1, 0)
   ) %>%    
 
-  select(EMPI, bcp_status, date, placement_date, removal_date, period_1) %>% 
+  select(EMPI, bcp_status, date, placement_date, removal_date, period_1, cl_duration_time) %>% 
   arrange(EMPI, desc(bcp_status))
   
 join_test2 = join_test[!duplicated(join_test$EMPI), ] %>% 
@@ -209,7 +210,7 @@ df.match %>%
 
     ## Warning in as.POSIXlt.POSIXct(x, tz = tz): unknown timezone '%y/%m/%d'
 
-    ## # A tibble: 1,190 × 22
+    ## # A tibble: 1,190 × 23
     ##          EMPI BIRTH_DATE sex_c  PAT_EN…¹ hosp_admsn_time     hosp_disch_time    
     ##         <dbl> <date>     <fct>     <dbl> <dttm>              <dttm>             
     ##  1 1000039263 1937-04-28 Female   1.16e8 2020-02-05 01:08:00 2020-04-01 00:27:00
@@ -222,13 +223,38 @@ df.match %>%
     ##  8 1000016630 1980-01-06 Female   1.28e8 2020-10-30 10:40:00 2020-11-15 09:33:00
     ##  9 1000070882 1958-08-08 Female   1.52e8 2021-07-28 00:33:00 2021-08-12 19:00:00
     ## 10 1000086187 1949-01-22 Female   1.74e8 2021-11-29 16:05:00 2022-01-10 18:10:00
-    ## # … with 1,180 more rows, 16 more variables: FLO_MEAS_ID <dbl>,
+    ## # … with 1,180 more rows, 17 more variables: FLO_MEAS_ID <dbl>,
     ## #   PLACEMENT_INSTANT <dttm>, REMOVAL_INSTANT <dttm>, DESCRIPTION <chr>,
     ## #   flo_meas_name <chr>, placement_date.x <date>, removal_date.x <date>,
     ## #   duration <drtn>, bcp_status <dbl>, date <date>, placement_date.y <date>,
-    ## #   removal_date.y <date>, period_1 <Interval>, matching_period <drtn>,
-    ## #   new_bcp_status <dbl>, new_matching_period <dbl>, and abbreviated variable
-    ## #   name ¹​PAT_ENC_CSN_ID
+    ## #   removal_date.y <date>, period_1 <Interval>, cl_duration_time <drtn>,
+    ## #   matching_period <drtn>, new_bcp_status <dbl>, new_matching_period <dbl>,
+    ## #   and abbreviated variable name ¹​PAT_ENC_CSN_ID
+
+``` r
+df.match
+```
+
+    ## # A tibble: 1,190 × 23
+    ##          EMPI BIRTH_DATE          sex_c PAT_ENC_CSN_ID hosp_admsn_time    
+    ##         <dbl> <dttm>              <dbl>          <dbl> <dttm>             
+    ##  1 1000039263 1937-04-28 00:00:00     2      115794137 2020-02-05 01:08:00
+    ##  2 1000087431 1945-05-18 00:00:00     1      150005039 2021-07-02 15:08:00
+    ##  3 1000092404 1942-03-24 00:00:00     1      190464289 2022-05-07 10:23:00
+    ##  4 1000172922 1950-09-19 00:00:00     1      186868549 2022-03-31 22:09:00
+    ##  5 1000178374 1987-03-12 00:00:00     2      179436960 2022-01-10 02:25:00
+    ##  6 1000018092 1953-10-27 00:00:00     1      185024635 2022-03-12 19:48:00
+    ##  7 1000135489 1989-11-02 00:00:00     1      127547323 2020-10-01 10:00:00
+    ##  8 1000016630 1980-01-06 00:00:00     2      128010373 2020-10-30 10:40:00
+    ##  9 1000070882 1958-08-08 00:00:00     2      151803384 2021-07-28 00:33:00
+    ## 10 1000086187 1949-01-22 00:00:00     2      174308016 2021-11-29 16:05:00
+    ## # … with 1,180 more rows, and 18 more variables: hosp_disch_time <dttm>,
+    ## #   FLO_MEAS_ID <dbl>, PLACEMENT_INSTANT <dttm>, REMOVAL_INSTANT <dttm>,
+    ## #   DESCRIPTION <chr>, flo_meas_name <chr>, placement_date.x <date>,
+    ## #   removal_date.x <date>, duration <drtn>, bcp_status <dbl>, date <date>,
+    ## #   placement_date.y <date>, removal_date.y <date>, period_1 <Interval>,
+    ## #   cl_duration_time <drtn>, matching_period <drtn>, new_bcp_status <dbl>,
+    ## #   new_matching_period <dbl>
 
 df.match has 1190 observations include 595 cases and 595 controls
 
@@ -279,17 +305,68 @@ join_tpn =
   mutate(
     tpn_status = ifelse(START_DATE %within% period_1, 1, 0)
   ) %>% 
-  select(EMPI, new_bcp_status, period_1, START_DATE, END_DATE, tpn_status) %>% 
+    arrange(EMPI, desc(tpn_status)) %>% 
+  select(EMPI, new_bcp_status, period_1, START_DATE, END_DATE, tpn_status, duration) %>% 
   mutate(
     new_tpn_status = ifelse(is.na(tpn_status), 0, tpn_status)
   ) %>% 
-    distinct(EMPI, new_tpn_status, .keep_all = TRUE) %>% 
+    distinct(EMPI, .keep_all = TRUE) 
+
+tpn_table = join_tpn%>% 
     janitor::tabyl(new_tpn_status, new_bcp_status)
-join_tpn
+tpn_table
 ```
 
     ##  new_tpn_status   0   1
-    ##               0 592 589
+    ##               0 575 577
     ##               1  20  18
 
-This is the 2\*2 table of exposure on the left, outcome on the right.
+This is the 2\*2 table of exposure on the left, outcome on the right. OR
+= ad/bc = 0.8969
+
+## Conditional logistic regression
+
+Possible covariates: age, gender, hospitalization duration…
+
+``` r
+mylogit <- glm(new_bcp_status ~ new_tpn_status + duration, data = join_tpn, family = "binomial")
+```
+
+``` r
+summary(mylogit)
+```
+
+    ## 
+    ## Call:
+    ## glm(formula = new_bcp_status ~ new_tpn_status + duration, family = "binomial", 
+    ##     data = join_tpn)
+    ## 
+    ## Deviance Residuals: 
+    ##     Min       1Q   Median       3Q      Max  
+    ## -2.5486  -1.1290   0.0226   1.2038   1.3283  
+    ## 
+    ## Coefficients:
+    ##                 Estimate Std. Error z value Pr(>|z|)    
+    ## (Intercept)    -0.168134   0.070909  -2.371   0.0177 *  
+    ## new_tpn_status -0.193226   0.337581  -0.572   0.5671    
+    ## duration        0.013292   0.003233   4.112 3.93e-05 ***
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ## (Dispersion parameter for binomial family taken to be 1)
+    ## 
+    ##     Null deviance: 1626.1  on 1172  degrees of freedom
+    ## Residual deviance: 1597.0  on 1170  degrees of freedom
+    ##   (17 observations deleted due to missingness)
+    ## AIC: 1603
+    ## 
+    ## Number of Fisher Scoring iterations: 5
+
+``` r
+confint.default(mylogit)
+```
+
+    ##                     2.5 %      97.5 %
+    ## (Intercept)    -0.3071134 -0.02915445
+    ## new_tpn_status -0.8548736  0.46842077
+    ## duration        0.0069560  0.01962898
