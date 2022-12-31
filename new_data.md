@@ -326,7 +326,13 @@ This is the 2\*2 table of exposure on the left, outcome on the right. OR
 
 ## Conditional logistic regression
 
-Possible covariates: age, gender, hospitalization duration…
+Possible covariates: age, gender, hospitalization duration, central line
+placement duration…
+
+First, using `mylogit` to do a logistic regression on the outcome
+variable (having blood culture positive) and on the predictor variable
+(TPN status). We also want to look at potential confounder so we
+included duration as a covariate.
 
 ``` r
 mylogit <- glm(new_bcp_status ~ new_tpn_status + duration, data = join_tpn, family = "binomial")
@@ -370,3 +376,23 @@ confint.default(mylogit)
     ## (Intercept)    -0.3071134 -0.02915445
     ## new_tpn_status -0.8548736  0.46842077
     ## duration        0.0069560  0.01962898
+
+Test result discussion: For the predictor `new_tpn_status`, p-value
+0.5671 is greater than 0.05 which indicates that it is not statistically
+significant. Our model suggests that having total parental nutrition
+does not significantly impact the result of blood culture positive. The
+Odds Ratio of having TPN to BCP is eβ = e^-0.1932 = 0.8243. This
+indicates that: the total parental nutrition group has 0.8243 times the
+odds of non total parental nutrition group of having blood culture
+positive. (?This makes TPN become a protective factor?)
+
+For the predictor `duration`, p-value 3.93e-05 is smaller than 0.05
+which indicates that it is statistically significant. Our model suggests
+that duration of central lines placement does significantly impact the
+result of blood culture positive. The Odds Ratio of central line
+placement duration to BCP is eβ = e^0.0133 = 1.013. This indicates that:
+An increase of 1 day in central line placement period is associated with
+an increase of 1.3% in the odds of blood culture positive.
+
+Wald test? For hypothesis testing and assumption check? Not sure about
+the assumption part.
