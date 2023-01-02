@@ -394,5 +394,7 @@ placement duration to BCP is eβ = e^0.0133 = 1.013. This indicates that:
 An increase of 1 day in central line placement period is associated with
 an increase of 1.3% in the odds of blood culture positive.
 
+------------------------------------------------------------------------
+
 Wald test? For hypothesis testing and assumption check? Not sure about
 the assumption part.

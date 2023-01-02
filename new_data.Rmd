@@ -14,6 +14,7 @@ library(ggplot2)
 ```
 ```{r}
 library("MatchIt")
+library(data.table)
 ```
 
 
@@ -154,6 +155,27 @@ ggplot(df.match, aes(x = ifelse(test = sex_c == "Male", yes = -pop, no = pop), y
   labs(x = "Population") 
 ```
 
+
+
+```{r}
+df.match %>% 
+  mutate(
+    birth_date = as.Date(gsub(BIRTH_DATE,pattern="00:00:00",replacement="",fixed=T)),
+    hosp_admsn_date = as.Date(gsub(hosp_admsn_time,pattern="00:00:00",replacement="",fixed=T)),
+    age = year(hosp_admsn_date) - year(birth_date),
+    age = as.factor(age)
+  ) 
+
+ggplot(aes(x=sex_c, y=age), data=subset(df.match, !is.na(sex_c))) + 
+  geom_boxplot() +
+  stat_summary(fun.y=mean, geom="point", shape=4)
+
+ggplot(df.match, aes(x = sex_c)) +
+  geom_histogram(binwidth=30) +
+  facet_wrap(~sex_c) 
+
+```
+
 Look at the exposure TPN status
 Next, we look at TPN data
 ```{r}
@@ -206,7 +228,7 @@ For the predictor `duration`, p-value 3.93e-05 is smaller than 0.05 which indica
 This indicates that: An increase of 1 day in central line placement period is associated with an increase of 1.3% in the odds of blood culture positive.
 
 
-
+------------
 Wald test?
 For hypothesis testing and assumption check? Not sure about the assumption part.
 
