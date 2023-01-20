@@ -14,7 +14,6 @@ library(ggplot2)
 ```
 ```{r}
 library("MatchIt")
-library(data.table)
 ```
 
 
@@ -140,20 +139,6 @@ df.match
 ```
 df.match has 1190 observations include 595 cases and 595 controls
 
-demographic analysis: age, gender
-```{r}
-library(lemon)
-   age <- function(BIRTH_DATE, on.day=today()) {
-    intvl <- interval(BIRTH_DATE, on.day)
-    prd <- as.period(intvl)
-    return(prd@year)
-   }
-pop = sample(x = 1:100, size = 20)
-ggplot(df.match, aes(x = ifelse(test = sex_c == "Male", yes = -pop, no = pop), y = BIRTH_DATE, fill = sex_c)) +
-  geom_col() +
-  scale_x_symmetric(labels = abs) +
-  labs(x = "Population") 
-```
 
 
 
@@ -162,19 +147,28 @@ df.match %>%
   mutate(
     birth_date = as.Date(gsub(BIRTH_DATE,pattern="00:00:00",replacement="",fixed=T)),
     hosp_admsn_date = as.Date(gsub(hosp_admsn_time,pattern="00:00:00",replacement="",fixed=T)),
-    age = year(hosp_admsn_date) - year(birth_date),
-    age = as.factor(age)
+    age = year(hosp_admsn_date) - year(birth_date)
   ) 
-
-ggplot(aes(x=sex_c, y=age), data=subset(df.match, !is.na(sex_c))) + 
-  geom_boxplot() +
-  stat_summary(fun.y=mean, geom="point", shape=4)
-
-ggplot(df.match, aes(x = sex_c)) +
+ggplot(aes(x = sex_c), data=subset(df.match, !is.na(sex_c))) +
   geom_histogram(binwidth=30) +
   facet_wrap(~sex_c) 
 
 ```
+demographic analysis: age, gender
+```{r}
+library(lemon)
+   age <- function(birth_date, on.day=today()) {
+    intvl <- interval(birth_date, on.day)
+    prd <- as.period(intvl)
+    return(prd@year)
+   }
+pop = sample(x = 1:100, size = 20)
+ggplot(df.match, aes(x = ifelse(test = sex_c == "Male", yes = -pop, no = pop), y = BIRTH_DATE , fill = sex_c)) +
+  geom_col() +
+  scale_x_symmetric(labels = abs) +
+  labs(x = "Population") 
+```
+
 
 Look at the exposure TPN status
 Next, we look at TPN data
@@ -230,6 +224,8 @@ This indicates that: An increase of 1 day in central line placement period is as
 
 ------------
 Wald test?
-For hypothesis testing and assumption check? Not sure about the assumption part.
+For hypothesis testing and assumption check? 
+Verification of assumptions, model diagnostics, forward selection model
+Discussion, final evaluation
 
 
