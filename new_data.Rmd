@@ -186,7 +186,7 @@ join_tpn =
     tpn_status = ifelse(START_DATE %within% period_1, 1, 0)
   ) %>% 
     arrange(EMPI, desc(tpn_status)) %>% 
-  select(EMPI, new_bcp_status, period_1, START_DATE, END_DATE, tpn_status, duration) %>% 
+  select(EMPI, sex_c, new_bcp_status, period_1, START_DATE, END_DATE, tpn_status, duration) %>% 
   mutate(
     new_tpn_status = ifelse(is.na(tpn_status), 0, tpn_status)
   ) %>% 
@@ -200,11 +200,11 @@ This is the 2*2 table of exposure on the left, outcome on the right.
 OR = ad/bc = 0.8969
 
 ## Conditional logistic regression
-Possible covariates: age, gender, hospitalization duration, central line placement duration...
+Possible covariates: age, gender (sex_c coded as 1 for female, 2 for male, 3 is unknown), central line placement duration (duration), hospitalization duration...
 
 First, using `mylogit` to do a logistic regression on the outcome variable (having blood culture positive) and on the predictor variable (TPN status). We also want to look at potential confounder so we included duration as a covariate.
 ```{r}
-mylogit <- glm(new_bcp_status ~ new_tpn_status + duration, data = join_tpn, family = "binomial")
+mylogit <- glm(new_bcp_status ~ new_tpn_status + duration + sex_c, data = join_tpn, family = "binomial")
 ```
 ```{r}
 summary(mylogit)
@@ -221,7 +221,8 @@ This indicates that: the total parental nutrition group has 0.8243 times the odd
 For the predictor `duration`, p-value 3.93e-05 is smaller than 0.05 which indicates that it is statistically significant. Our model suggests that duration of central lines placement does significantly impact the result of blood culture positive. The Odds Ratio of central line placement duration to BCP is eβ = e^0.0133 = 1.013.
 This indicates that: An increase of 1 day in central line placement period is associated with an increase of 1.3% in the odds of blood culture positive.
 
-
+For the predictor `sex_c`, p-value 0.674 is greater than 0.05 which indicates that it is not statistically significant. Our model suggests that gender does significantly impact the result of blood culture positive. The Odds Ratio of being a female and getting BCP compares to being a male and getting BCP is eβ = e^0.0506 = 1.052.
+Gender is not a significant covariate in the relationship of getting blood culture positive. 
 ------------
 Wald test?
 For hypothesis testing and assumption check? 

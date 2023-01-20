@@ -343,7 +343,7 @@ join_tpn =
     tpn_status = ifelse(START_DATE %within% period_1, 1, 0)
   ) %>% 
     arrange(EMPI, desc(tpn_status)) %>% 
-  select(EMPI, new_bcp_status, period_1, START_DATE, END_DATE, tpn_status, duration) %>% 
+  select(EMPI, sex_c, new_bcp_status, period_1, START_DATE, END_DATE, tpn_status, duration) %>% 
   mutate(
     new_tpn_status = ifelse(is.na(tpn_status), 0, tpn_status)
   ) %>% 
@@ -363,8 +363,9 @@ This is the 2\*2 table of exposure on the left, outcome on the right. OR
 
 ## Conditional logistic regression
 
-Possible covariates: age, gender, hospitalization duration, central line
-placement duration…
+Possible covariates: age, gender (sex_c coded as 1 for female, 2 for
+male, 3 is unknown), central line placement duration (duration),
+hospitalization duration…
 
 First, using `mylogit` to do a logistic regression on the outcome
 variable (having blood culture positive) and on the predictor variable
@@ -372,7 +373,7 @@ variable (having blood culture positive) and on the predictor variable
 included duration as a covariate.
 
 ``` r
-mylogit <- glm(new_bcp_status ~ new_tpn_status + duration, data = join_tpn, family = "binomial")
+mylogit <- glm(new_bcp_status ~ new_tpn_status + duration + sex_c, data = join_tpn, family = "binomial")
 ```
 
 ``` r
@@ -381,27 +382,28 @@ summary(mylogit)
 
     ## 
     ## Call:
-    ## glm(formula = new_bcp_status ~ new_tpn_status + duration, family = "binomial", 
-    ##     data = join_tpn)
+    ## glm(formula = new_bcp_status ~ new_tpn_status + duration + sex_c, 
+    ##     family = "binomial", data = join_tpn)
     ## 
     ## Deviance Residuals: 
     ##     Min       1Q   Median       3Q      Max  
-    ## -2.5486  -1.1290   0.0226   1.2038   1.3283  
+    ## -2.5560  -1.1321   0.0224   1.2006   1.3418  
     ## 
     ## Coefficients:
     ##                 Estimate Std. Error z value Pr(>|z|)    
-    ## (Intercept)    -0.168134   0.070909  -2.371   0.0177 *  
-    ## new_tpn_status -0.193226   0.337581  -0.572   0.5671    
-    ## duration        0.013292   0.003233   4.112 3.93e-05 ***
+    ## (Intercept)    -0.248602   0.204013  -1.219    0.223    
+    ## new_tpn_status -0.193874   0.337537  -0.574    0.566    
+    ## duration        0.013288   0.003231   4.112 3.92e-05 ***
+    ## sex_c           0.050570   0.120181   0.421    0.674    
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
     ## (Dispersion parameter for binomial family taken to be 1)
     ## 
     ##     Null deviance: 1626.1  on 1172  degrees of freedom
-    ## Residual deviance: 1597.0  on 1170  degrees of freedom
+    ## Residual deviance: 1596.9  on 1169  degrees of freedom
     ##   (17 observations deleted due to missingness)
-    ## AIC: 1603
+    ## AIC: 1604.9
     ## 
     ## Number of Fisher Scoring iterations: 5
 
@@ -409,10 +411,11 @@ summary(mylogit)
 confint.default(mylogit)
 ```
 
-    ##                     2.5 %      97.5 %
-    ## (Intercept)    -0.3071134 -0.02915445
-    ## new_tpn_status -0.8548736  0.46842077
-    ## duration        0.0069560  0.01962898
+    ##                       2.5 %     97.5 %
+    ## (Intercept)    -0.648459644 0.15125526
+    ## new_tpn_status -0.855435253 0.46768705
+    ## duration        0.006954472 0.01962112
+    ## sex_c          -0.184981372 0.28612120
 
 Test result discussion: For the predictor `new_tpn_status`, p-value
 0.5671 is greater than 0.05 which indicates that it is not statistically
@@ -431,8 +434,12 @@ placement duration to BCP is eβ = e^0.0133 = 1.013. This indicates that:
 An increase of 1 day in central line placement period is associated with
 an increase of 1.3% in the odds of blood culture positive.
 
-------------------------------------------------------------------------
-
-Wald test? For hypothesis testing and assumption check? Verification of
-assumptions, model diagnostics, forward selection model Discussion,
-final evaluation
+For the predictor `sex_c`, p-value 0.674 is greater than 0.05 which
+indicates that it is not statistically significant. Our model suggests
+that gender does significantly impact the result of blood culture
+positive. The Odds Ratio of being a female and getting BCP compares to
+being a male and getting BCP is eβ = e^0.0506 = 1.052. Gender is not a
+significant covariate in the relationship of getting blood culture
+positive. ———— Wald test? For hypothesis testing and assumption check?
+Verification of assumptions, model diagnostics, forward selection model
+Discussion, final evaluation
