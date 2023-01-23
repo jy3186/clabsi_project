@@ -140,35 +140,16 @@ df.match
 df.match has 1190 observations include 595 cases and 595 controls
 
 
-
+demographic analysis: age, gender
+...
 
 ```{r}
-df.match %>% 
-  mutate(
-    birth_date = as.Date(gsub(BIRTH_DATE,pattern="00:00:00",replacement="",fixed=T)),
-    hosp_admsn_date = as.Date(gsub(hosp_admsn_time,pattern="00:00:00",replacement="",fixed=T)),
-    age = year(hosp_admsn_date) - year(birth_date)
-  ) 
+
 ggplot(aes(x = sex_c), data=subset(df.match, !is.na(sex_c))) +
   geom_histogram(binwidth=30) +
   facet_wrap(~sex_c) 
 
 ```
-demographic analysis: age, gender
-```{r}
-library(lemon)
-   age <- function(birth_date, on.day=today()) {
-    intvl <- interval(birth_date, on.day)
-    prd <- as.period(intvl)
-    return(prd@year)
-   }
-pop = sample(x = 1:100, size = 20)
-ggplot(df.match, aes(x = ifelse(test = sex_c == "Male", yes = -pop, no = pop), y = BIRTH_DATE , fill = sex_c)) +
-  geom_col() +
-  scale_x_symmetric(labels = abs) +
-  labs(x = "Population") 
-```
-
 
 Look at the exposure TPN status
 Next, we look at TPN data
@@ -186,9 +167,14 @@ join_tpn =
     tpn_status = ifelse(START_DATE %within% period_1, 1, 0)
   ) %>% 
     arrange(EMPI, desc(tpn_status)) %>% 
-  select(EMPI, sex_c, new_bcp_status, period_1, START_DATE, END_DATE, tpn_status, duration) %>% 
+  select(EMPI, BIRTH_DATE, sex_c, new_bcp_status, period_1, START_DATE, END_DATE, tpn_status, duration, hosp_admsn_time) %>% 
   mutate(
     new_tpn_status = ifelse(is.na(tpn_status), 0, tpn_status)
+  ) %>% 
+  mutate(
+    birth_date = as.Date(gsub(BIRTH_DATE,pattern="00:00:00",replacement="",fixed=T)),
+    hosp_admsn_date = as.Date(gsub(hosp_admsn_time,pattern="00:00:00",replacement="",fixed=T)),
+    age = year(hosp_admsn_date) - year(birth_date)
   ) %>% 
     distinct(EMPI, .keep_all = TRUE) 
 
@@ -200,11 +186,11 @@ This is the 2*2 table of exposure on the left, outcome on the right.
 OR = ad/bc = 0.8969
 
 ## Conditional logistic regression
-Possible covariates: age, gender (sex_c coded as 1 for female, 2 for male, 3 is unknown), central line placement duration (duration), hospitalization duration...
+Possible covariates: age (age at the hospital admission time point), gender (sex_c coded as 1 for female, 2 for male, 3 is unknown), central line placement duration (duration)...
 
 First, using `mylogit` to do a logistic regression on the outcome variable (having blood culture positive) and on the predictor variable (TPN status). We also want to look at potential confounder so we included duration as a covariate.
 ```{r}
-mylogit <- glm(new_bcp_status ~ new_tpn_status + duration + sex_c, data = join_tpn, family = "binomial")
+mylogit <- glm(new_bcp_status ~ new_tpn_status + duration + age + sex_c, data = join_tpn, family = "binomial")
 ```
 ```{r}
 summary(mylogit)
@@ -214,19 +200,24 @@ confint.default(mylogit)
 ```
 
 Test result discussion:
-For the predictor `new_tpn_status`, p-value 0.5671 is greater than 0.05 which indicates that it is not statistically significant. Our model suggests that having total parental nutrition does not significantly impact the result of blood culture positive. The Odds Ratio of having TPN to BCP is eβ = e^-0.1932 = 0.8243.
-This indicates that: the total parental nutrition group has 0.8243 times the odds of non total parental nutrition group of having blood culture positive.
+For the predictor `new_tpn_status`, p-value 0.4285 is greater than 0.05 which indicates that it is not statistically significant. Our model suggests that having total parental nutrition does not significantly impact the result of blood culture positive. The Odds Ratio of having TPN to BCP is eβ = e^-0.2687 = 0.7644.
+This indicates that: the total parental nutrition group has 0.7644 times the odds of non total parental nutrition group of having blood culture positive.
 (?This makes TPN become a protective factor?)
 
-For the predictor `duration`, p-value 3.93e-05 is smaller than 0.05 which indicates that it is statistically significant. Our model suggests that duration of central lines placement does significantly impact the result of blood culture positive. The Odds Ratio of central line placement duration to BCP is eβ = e^0.0133 = 1.013.
-This indicates that: An increase of 1 day in central line placement period is associated with an increase of 1.3% in the odds of blood culture positive.
+For the predictor `duration`, p-value 0.000492 is smaller than 0.05 which indicates that it is statistically significant. Our model suggests that duration of central lines placement does significantly impact the result of blood culture positive. The Odds Ratio of central line placement duration to BCP is eβ = e^0.0112 = 1.0113.
+This indicates that: An increase of 1 day in central line placement period is associated with an increase of 1.13% in the odds of blood culture positive, adjusting for tpn, age and gender.
 
-For the predictor `sex_c`, p-value 0.674 is greater than 0.05 which indicates that it is not statistically significant. Our model suggests that gender does significantly impact the result of blood culture positive. The Odds Ratio of being a female and getting BCP compares to being a male and getting BCP is eβ = e^0.0506 = 1.052.
+?For the predictor `age`, p-value 5.03e-05 is smaller than 0.05 which indicates that it is statistically significant. Our model suggests that the age of patient does significantly impact the result of blood culture positive. The exponentiated coefficient for age variable in patients of getting BCP is eβ = e^-0.0120 = 0.9880.
+This indicates that: For every one year increase in age, the odds of central-lined patients getting blood culture positive decrease by 1.2%, adjusting for tpn, duration and gender.
+
+For the predictor `sex_c`, p-value 0.7447 is greater than 0.05 which indicates that it is not statistically significant. Our model suggests that gender does significantly impact the result of blood culture positive. The Odds Ratio of being a female and getting BCP compares to being a male and getting BCP is eβ = e^0.0394 = 1.0402.
 Gender is not a significant covariate in the relationship of getting blood culture positive. 
+
 ------------
 Wald test?
 For hypothesis testing and assumption check? 
 Verification of assumptions, model diagnostics, forward selection model
 Discussion, final evaluation
 
+May look at the interaction term for age and gender?
 
