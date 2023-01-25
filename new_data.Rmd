@@ -141,13 +141,18 @@ df.match has 1190 observations include 595 cases and 595 controls
 
 
 demographic analysis: age, gender
+1 is female, 2 is male.
 ...
 
 ```{r}
 
-ggplot(aes(x = sex_c), data=subset(df.match, !is.na(sex_c))) +
-  geom_histogram(binwidth=30) +
-  facet_wrap(~sex_c) 
+ggplot(aes(x = sex_c), data=subset(df.match, !is.na(sex_c)), color = sex_c) +
+  geom_histogram(binwidth=30) + labs(
+    title = "Distribution of gender",
+    x = "gender",
+    y = "count"
+  ) +
+  facet_grid(. ~sex_c) 
 
 ```
 
@@ -190,6 +195,7 @@ Possible covariates: age (age at the hospital admission time point), gender (sex
 
 First, using `mylogit` to do a logistic regression on the outcome variable (having blood culture positive) and on the predictor variable (TPN status). We also want to look at potential confounder so we included duration as a covariate.
 ```{r}
+
 mylogit <- glm(new_bcp_status ~ new_tpn_status + duration + age + sex_c, data = join_tpn, family = "binomial")
 ```
 ```{r}

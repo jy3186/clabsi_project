@@ -258,12 +258,16 @@ df.match
 
 df.match has 1190 observations include 595 cases and 595 controls
 
-demographic analysis: age, gender …
+demographic analysis: age, gender 1 is female, 2 is male. …
 
 ``` r
-ggplot(aes(x = sex_c), data=subset(df.match, !is.na(sex_c))) +
-  geom_histogram(binwidth=30) +
-  facet_wrap(~sex_c) 
+ggplot(aes(x = sex_c), data=subset(df.match, !is.na(sex_c)), color = sex_c) +
+  geom_histogram(binwidth=30) + labs(
+    title = "Distribution of gender",
+    x = "gender",
+    y = "count"
+  ) +
+  facet_grid(. ~sex_c) 
 ```
 
 ![](new_data_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
