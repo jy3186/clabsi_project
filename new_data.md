@@ -5,6 +5,7 @@ Jiayi Yang
 
 ``` r
 library("MatchIt")
+library(survival)
 ```
 
 import the new data
@@ -288,7 +289,7 @@ join_tpn =
     tpn_status = ifelse(START_DATE %within% period_1, 1, 0)
   ) %>% 
     arrange(EMPI, desc(tpn_status)) %>% 
-  select(EMPI, BIRTH_DATE, sex_c, new_bcp_status, period_1, START_DATE, END_DATE, tpn_status, duration, hosp_admsn_time) %>% 
+  select(EMPI, BIRTH_DATE, sex_c, new_bcp_status, period_1, START_DATE, END_DATE, tpn_status, duration, hosp_admsn_time, new_matching_period) %>% 
   mutate(
     new_tpn_status = ifelse(is.na(tpn_status), 0, tpn_status)
   ) %>% 
@@ -323,7 +324,68 @@ variable (having blood culture positive) and on the predictor variable
 included duration as a covariate.
 
 ``` r
-mylogit <- glm(new_bcp_status ~ new_tpn_status + duration + age + sex_c, data = join_tpn, family = "binomial")
+fit.clr <- clogit(new_bcp_status ~ new_tpn_status + duration + age + sex_c + strata(new_matching_period), data = join_tpn)
+
+round(summary(fit.clr)$coef, 4)
+```
+
+    ##                   coef exp(coef) se(coef)       z Pr(>|z|)
+    ## new_tpn_status  0.5393    1.7147   0.4933  1.0932   0.2743
+    ## duration        0.0153    1.0154   0.0038  4.0669   0.0000
+    ## age            -0.0085    0.9916   0.0044 -1.9120   0.0559
+    ## sex_c           0.0166    1.0168   0.1849  0.0899   0.9284
+
+``` r
+OR.CI <- cbind("OR" = exp(coef(fit.clr)),
+               exp(confint(fit.clr)))
+round(OR.CI, 3)
+```
+
+    ##                   OR 2.5 % 97.5 %
+    ## new_tpn_status 1.715 0.652  4.509
+    ## duration       1.015 1.008  1.023
+    ## age            0.992 0.983  1.000
+    ## sex_c          1.017 0.708  1.461
+
+Test result discussion: For the exposure predictor `new_tpn_status`,
+p-value 0.2743 is greater than 0.05 which indicates that it is not
+statistically significant. Our model suggests that having total parental
+nutrition does not significantly impact the result of blood culture
+positive. The Odds Ratio of having TPN to BCP is eβ = e^-0.5393 = 1.715.
+This indicates that: the odds of having blood culture positive in the
+total parental nutrition group is 1.715 times the odds of having blood
+culture positive in the non total parental nutrition group
+
+For the predictor `duration`, p-value 0.0001 is smaller than 0.05 which
+indicates that it is statistically significant. Our model suggests that
+duration of central lines placement does significantly impact the result
+of blood culture positive. The Odds Ratio of central line placement
+duration to BCP is eβ = e^0.0153 = 1.015. This indicates that: An
+increase of 1 day in central line placement period is associated with an
+increase of 1.5% in the odds of blood culture positive, adjusting for
+tpn, age and gender.
+
+?For the predictor `age`, p-value 0.0559 is slightly bigger than 0.05
+which indicates that it is not statistically significant. Our model
+suggests that the age of patient does not significantly impact the
+result of blood culture positive. The exponentiated coefficient for age
+variable in patients of getting BCP is eβ = e^-0.0085 = 0.992. This
+indicates that: For every one year increase in age, the odds of
+central-lined patients getting blood culture positive decrease by 0.8%,
+adjusting for tpn, duration and gender.
+
+For the predictor `sex_c`, p-value 0.9284 is greater than 0.05 which
+indicates that it is not statistically significant. Our model suggests
+that gender does significantly impact the result of blood culture
+positive. The Odds Ratio of being a female and getting BCP compares to
+being a male and getting BCP is eβ = e^0.0166 = 1.017. Gender is not a
+significant covariate in the relationship of getting blood culture
+positive.
+
+### Regular Logistic Regression Model (will not use)
+
+``` r
+mylogit <- glm(new_bcp_status ~  duration + age + sex_c, data = join_tpn, family = "binomial")
 ```
 
 ``` r
@@ -332,29 +394,28 @@ summary(mylogit)
 
     ## 
     ## Call:
-    ## glm(formula = new_bcp_status ~ new_tpn_status + duration + age + 
-    ##     sex_c, family = "binomial", data = join_tpn)
+    ## glm(formula = new_bcp_status ~ duration + age + sex_c, family = "binomial", 
+    ##     data = join_tpn)
     ## 
     ## Deviance Residuals: 
     ##      Min        1Q    Median        3Q       Max  
-    ## -2.26700  -1.12037   0.03026   1.18615   1.49656  
+    ## -2.25437  -1.11889   0.03149   1.18570   1.45696  
     ## 
     ## Coefficients:
-    ##                 Estimate Std. Error z value Pr(>|z|)    
-    ## (Intercept)     0.525365   0.280078   1.876 0.060686 .  
-    ## new_tpn_status -0.268662   0.339331  -0.792 0.428513    
-    ## duration        0.011157   0.003201   3.485 0.000492 ***
-    ## age            -0.012002   0.002960  -4.054 5.03e-05 ***
-    ## sex_c           0.039448   0.121121   0.326 0.744661    
+    ##              Estimate Std. Error z value Pr(>|z|)    
+    ## (Intercept)  0.510515   0.279301   1.828 0.067574 .  
+    ## duration     0.011055   0.003199   3.456 0.000549 ***
+    ## age         -0.011870   0.002952  -4.021  5.8e-05 ***
+    ## sex_c        0.039084   0.121087   0.323 0.746864    
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
     ## (Dispersion parameter for binomial family taken to be 1)
     ## 
     ##     Null deviance: 1626.1  on 1172  degrees of freedom
-    ## Residual deviance: 1579.9  on 1168  degrees of freedom
+    ## Residual deviance: 1580.5  on 1169  degrees of freedom
     ##   (17 observations deleted due to missingness)
-    ## AIC: 1589.9
+    ## AIC: 1588.5
     ## 
     ## Number of Fisher Scoring iterations: 5
 
@@ -362,47 +423,11 @@ summary(mylogit)
 confint.default(mylogit)
 ```
 
-    ##                      2.5 %      97.5 %
-    ## (Intercept)    -0.02357871  1.07430846
-    ## new_tpn_status -0.93373876  0.39641500
-    ## duration        0.00488286  0.01743112
-    ## age            -0.01780385 -0.00619960
-    ## sex_c          -0.19794528  0.27684044
-
-Test result discussion: For the predictor `new_tpn_status`, p-value
-0.4285 is greater than 0.05 which indicates that it is not statistically
-significant. Our model suggests that having total parental nutrition
-does not significantly impact the result of blood culture positive. The
-Odds Ratio of having TPN to BCP is eβ = e^-0.2687 = 0.7644. This
-indicates that: the total parental nutrition group has 0.7644 times the
-odds of non total parental nutrition group of having blood culture
-positive. (?This makes TPN become a protective factor?)
-
-For the predictor `duration`, p-value 0.000492 is smaller than 0.05
-which indicates that it is statistically significant. Our model suggests
-that duration of central lines placement does significantly impact the
-result of blood culture positive. The Odds Ratio of central line
-placement duration to BCP is eβ = e^0.0112 = 1.0113. This indicates
-that: An increase of 1 day in central line placement period is
-associated with an increase of 1.13% in the odds of blood culture
-positive, adjusting for tpn, age and gender.
-
-?For the predictor `age`, p-value 5.03e-05 is smaller than 0.05 which
-indicates that it is statistically significant. Our model suggests that
-the age of patient does significantly impact the result of blood culture
-positive. The exponentiated coefficient for age variable in patients of
-getting BCP is eβ = e^-0.0120 = 0.9880. This indicates that: For every
-one year increase in age, the odds of central-lined patients getting
-blood culture positive decrease by 1.2%, adjusting for tpn, duration and
-gender.
-
-For the predictor `sex_c`, p-value 0.7447 is greater than 0.05 which
-indicates that it is not statistically significant. Our model suggests
-that gender does significantly impact the result of blood culture
-positive. The Odds Ratio of being a female and getting BCP compares to
-being a male and getting BCP is eβ = e^0.0394 = 1.0402. Gender is not a
-significant covariate in the relationship of getting blood culture
-positive.
+    ##                    2.5 %       97.5 %
+    ## (Intercept) -0.036903909  1.057934674
+    ## duration     0.004785316  0.017325640
+    ## age         -0.017656512 -0.006083756
+    ## sex_c       -0.198242036  0.276410400
 
 ------------------------------------------------------------------------
 
@@ -410,4 +435,5 @@ Wald test? For hypothesis testing and assumption check? Verification of
 assumptions, model diagnostics, forward selection model Discussion,
 final evaluation
 
-May look at the interaction term for age and gender?
+May look at the interaction term for age and gender? normality
+assumption report the r square : how much the variability

@@ -14,6 +14,7 @@ library(ggplot2)
 ```
 ```{r}
 library("MatchIt")
+library(survival)
 ```
 
 
@@ -172,7 +173,7 @@ join_tpn =
     tpn_status = ifelse(START_DATE %within% period_1, 1, 0)
   ) %>% 
     arrange(EMPI, desc(tpn_status)) %>% 
-  select(EMPI, BIRTH_DATE, sex_c, new_bcp_status, period_1, START_DATE, END_DATE, tpn_status, duration, hosp_admsn_time) %>% 
+  select(EMPI, BIRTH_DATE, sex_c, new_bcp_status, period_1, START_DATE, END_DATE, tpn_status, duration, hosp_admsn_time, new_matching_period) %>% 
   mutate(
     new_tpn_status = ifelse(is.na(tpn_status), 0, tpn_status)
   ) %>% 
@@ -191,12 +192,39 @@ This is the 2*2 table of exposure on the left, outcome on the right.
 OR = ad/bc = 0.8969
 
 ## Conditional logistic regression
+
 Possible covariates: age (age at the hospital admission time point), gender (sex_c coded as 1 for female, 2 for male, 3 is unknown), central line placement duration (duration)...
 
 First, using `mylogit` to do a logistic regression on the outcome variable (having blood culture positive) and on the predictor variable (TPN status). We also want to look at potential confounder so we included duration as a covariate.
 ```{r}
+fit.clr <- clogit(new_bcp_status ~ new_tpn_status + duration + age + sex_c + strata(new_matching_period), data = join_tpn)
 
-mylogit <- glm(new_bcp_status ~ new_tpn_status + duration + age + sex_c, data = join_tpn, family = "binomial")
+round(summary(fit.clr)$coef, 4)
+```
+
+```{r}
+OR.CI <- cbind("OR" = exp(coef(fit.clr)),
+               exp(confint(fit.clr)))
+round(OR.CI, 3)
+```
+
+Test result discussion:
+For the exposure predictor `new_tpn_status`, p-value 0.2743 is greater than 0.05 which indicates that it is not statistically significant. Our model suggests that having total parental nutrition does not significantly impact the result of blood culture positive. The Odds Ratio of having TPN to BCP is eβ = e^-0.5393 = 1.715.
+This indicates that: the odds of having blood culture positive in the total parental nutrition group is 1.715 times the odds of having blood culture positive in the non total parental nutrition group
+
+For the predictor `duration`, p-value 0.0001 is smaller than 0.05 which indicates that it is statistically significant. Our model suggests that duration of central lines placement does significantly impact the result of blood culture positive. The Odds Ratio of central line placement duration to BCP is eβ = e^0.0153 = 1.015.
+This indicates that: An increase of 1 day in central line placement period is associated with an increase of 1.5% in the odds of blood culture positive, adjusting for tpn, age and gender.
+
+?For the predictor `age`, p-value 0.0559 is slightly bigger than 0.05 which indicates that it is not statistically significant. Our model suggests that the age of patient does not significantly impact the result of blood culture positive. The exponentiated coefficient for age variable in patients of getting BCP is eβ = e^-0.0085 = 0.992.
+This indicates that: For every one year increase in age, the odds of central-lined patients getting blood culture positive decrease by 0.8%, adjusting for tpn, duration and gender.
+
+For the predictor `sex_c`, p-value 0.9284 is greater than 0.05 which indicates that it is not statistically significant. Our model suggests that gender does significantly impact the result of blood culture positive. The Odds Ratio of being a female and getting BCP compares to being a male and getting BCP is eβ = e^0.0166 = 1.017.
+Gender is not a significant covariate in the relationship of getting blood culture positive. 
+
+
+### Regular Logistic Regression Model (will not use)
+```{r}
+mylogit <- glm(new_bcp_status ~  duration + age + sex_c, data = join_tpn, family = "binomial")
 ```
 ```{r}
 summary(mylogit)
@@ -205,19 +233,7 @@ summary(mylogit)
 confint.default(mylogit)
 ```
 
-Test result discussion:
-For the predictor `new_tpn_status`, p-value 0.4285 is greater than 0.05 which indicates that it is not statistically significant. Our model suggests that having total parental nutrition does not significantly impact the result of blood culture positive. The Odds Ratio of having TPN to BCP is eβ = e^-0.2687 = 0.7644.
-This indicates that: the total parental nutrition group has 0.7644 times the odds of non total parental nutrition group of having blood culture positive.
-(?This makes TPN become a protective factor?)
 
-For the predictor `duration`, p-value 0.000492 is smaller than 0.05 which indicates that it is statistically significant. Our model suggests that duration of central lines placement does significantly impact the result of blood culture positive. The Odds Ratio of central line placement duration to BCP is eβ = e^0.0112 = 1.0113.
-This indicates that: An increase of 1 day in central line placement period is associated with an increase of 1.13% in the odds of blood culture positive, adjusting for tpn, age and gender.
-
-?For the predictor `age`, p-value 5.03e-05 is smaller than 0.05 which indicates that it is statistically significant. Our model suggests that the age of patient does significantly impact the result of blood culture positive. The exponentiated coefficient for age variable in patients of getting BCP is eβ = e^-0.0120 = 0.9880.
-This indicates that: For every one year increase in age, the odds of central-lined patients getting blood culture positive decrease by 1.2%, adjusting for tpn, duration and gender.
-
-For the predictor `sex_c`, p-value 0.7447 is greater than 0.05 which indicates that it is not statistically significant. Our model suggests that gender does significantly impact the result of blood culture positive. The Odds Ratio of being a female and getting BCP compares to being a male and getting BCP is eβ = e^0.0394 = 1.0402.
-Gender is not a significant covariate in the relationship of getting blood culture positive. 
 
 ------------
 Wald test?
@@ -226,4 +242,6 @@ Verification of assumptions, model diagnostics, forward selection model
 Discussion, final evaluation
 
 May look at the interaction term for age and gender?
+normality assumption
+report the r square : how much the variability 
 
