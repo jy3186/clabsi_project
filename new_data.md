@@ -429,6 +429,8 @@ confint.default(mylogit)
     ## age         -0.017656512 -0.006083756
     ## sex_c       -0.198242036  0.276410400
 
+git config –global http.version HTTP/1.1
+
 ------------------------------------------------------------------------
 
 Verification of assumptions, model diagnostics, forward selection model
