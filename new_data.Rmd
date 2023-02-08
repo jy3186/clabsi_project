@@ -233,8 +233,6 @@ summary(mylogit)
 confint.default(mylogit)
 ```
 
-
-
 ------------
 
 Verification of assumptions, model diagnostics, forward selection model
