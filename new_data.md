@@ -431,9 +431,8 @@ confint.default(mylogit)
 
 ------------------------------------------------------------------------
 
-Wald test? For hypothesis testing and assumption check? Verification of
-assumptions, model diagnostics, forward selection model Discussion,
-final evaluation
+Verification of assumptions, model diagnostics, forward selection model
+Discussion, final evaluation
 
 May look at the interaction term for age and gender? normality
 assumption report the r square : how much the variability

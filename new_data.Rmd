@@ -236,8 +236,7 @@ confint.default(mylogit)
 
 
 ------------
-Wald test?
-For hypothesis testing and assumption check? 
+
 Verification of assumptions, model diagnostics, forward selection model
 Discussion, final evaluation
 
