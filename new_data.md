@@ -324,16 +324,15 @@ variable (having blood culture positive) and on the predictor variable
 included duration as a covariate.
 
 ``` r
-fit.clr <- clogit(new_bcp_status ~ new_tpn_status + duration + age + sex_c + strata(new_matching_period), data = join_tpn)
+fit.clr <- clogit(new_bcp_status ~ new_tpn_status + age + sex_c + strata(new_matching_period), data = join_tpn)
 
 round(summary(fit.clr)$coef, 4)
 ```
 
     ##                   coef exp(coef) se(coef)       z Pr(>|z|)
-    ## new_tpn_status  0.5393    1.7147   0.4933  1.0932   0.2743
-    ## duration        0.0153    1.0154   0.0038  4.0669   0.0000
-    ## age            -0.0085    0.9916   0.0044 -1.9120   0.0559
-    ## sex_c           0.0166    1.0168   0.1849  0.0899   0.9284
+    ## new_tpn_status  0.7717    2.1633   0.4861  1.5873   0.1124
+    ## age            -0.0103    0.9898   0.0043 -2.4043   0.0162
+    ## sex_c           0.0101    1.0101   0.1804  0.0557   0.9556
 
 ``` r
 OR.CI <- cbind("OR" = exp(coef(fit.clr)),
@@ -342,31 +341,21 @@ round(OR.CI, 3)
 ```
 
     ##                   OR 2.5 % 97.5 %
-    ## new_tpn_status 1.715 0.652  4.509
-    ## duration       1.015 1.008  1.023
-    ## age            0.992 0.983  1.000
-    ## sex_c          1.017 0.708  1.461
+    ## new_tpn_status 2.163 0.834  5.610
+    ## age            0.990 0.982  0.998
+    ## sex_c          1.010 0.709  1.438
 
 Test result discussion: For the exposure predictor `new_tpn_status`, the
 p-value 0.2743 is greater than 0.05 which indicates that it is not
 statistically significant. Our model suggests that having total parental
 nutrition does not significantly impact the result of blood culture
 positive. The Odds Ratio of having blood culture positive in having TPN
-compared to non-TPN is eβ = e^-0.5393 = 1.715.
+compared to non-TPN is eβ = e^-0.5393 = 1.715, with a 95% CI (0.652,
+4.509).
 
 This indicates that: the odds of having blood culture positive in the
 total parental nutrition group is 1.715 times the odds of having blood
 culture positive in the non-total parental nutrition group
-
-For the predictor `duration`, the p-value 0.0001 is smaller than 0.05
-which indicates that it is statistically significant. Our model suggests
-that the duration of central lines placement does significantly impact
-the result of blood culture positive. The Odds Ratio of central line
-placement duration to BCP is eβ = e^0.0153 = 1.015.
-
-This indicates that: An increase of 1 day in the central line placement
-period is associated with an increase of 1.5% in the odds of blood
-culture positive, adjusting for TPN, age, and gender.
 
 ?For the predictor `age`, the p-value 0.0559 is slightly bigger than
 0.05 which indicates that it is not statistically significant. Our model
@@ -394,4 +383,26 @@ git config –global http.version HTTP/1.1
 model diagnostics, forward selection model Discussion, final evaluation
 
 May look at the interaction term for age and gender? normality
-assumption report the r square : how much the variability
+assumption report the r square : how much the variability take out
+duration variable
+
+something else to do: a table a column for cases and for control gender,
+age, mean age, p value, tpn cases vs controls package gtsummary to look
+at simple p-values
+
+chi-square and t test for each one p-values for each one no need to do
+interaction
+
+put in a univariate analysis
+
+discussion section: very small summary of main results, another pgraph
+for why you choose the design and the burden, pgraph how you interpret
+the findings, did not need to be significant, but why (not enough tpn
+people), suprised by why age and gender not associated with the
+outcome..
+
+limitation: are we sure we capture every measure correctly
+
+talk about future studies what can be done
+
+english idiom

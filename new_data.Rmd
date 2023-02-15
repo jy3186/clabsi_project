@@ -197,7 +197,7 @@ Possible covariates: age (age at the hospital admission time point), gender (sex
 
 First, using `mylogit` to do a logistic regression on the outcome variable (having blood culture positive) and on the predictor variable (TPN status). We also want to look at potential confounder so we included duration as a covariate.
 ```{r}
-fit.clr <- clogit(new_bcp_status ~ new_tpn_status + duration + age + sex_c + strata(new_matching_period), data = join_tpn)
+fit.clr <- clogit(new_bcp_status ~ new_tpn_status + age + sex_c + strata(new_matching_period), data = join_tpn)
 
 round(summary(fit.clr)$coef, 4)
 ```
@@ -209,13 +209,10 @@ round(OR.CI, 3)
 ```
 
 Test result discussion:
-For the exposure predictor `new_tpn_status`, the p-value 0.2743 is greater than 0.05 which indicates that it is not statistically significant. Our model suggests that having total parental nutrition does not significantly impact the result of blood culture positive. The Odds Ratio of having blood culture positive in having TPN compared to non-TPN is eβ = e^-0.5393 = 1.715.
+For the exposure predictor `new_tpn_status`, the p-value 0.2743 is greater than 0.05 which indicates that it is not statistically significant. Our model suggests that having total parental nutrition does not significantly impact the result of blood culture positive. The Odds Ratio of having blood culture positive in having TPN compared to non-TPN is eβ = e^-0.5393 = 1.715, with a 95% CI (0.652, 4.509).
 
 This indicates that: the odds of having blood culture positive in the total parental nutrition group is 1.715 times the odds of having blood culture positive in the non-total parental nutrition group
 
-For the predictor `duration`, the p-value 0.0001 is smaller than 0.05 which indicates that it is statistically significant. Our model suggests that the duration of central lines placement does significantly impact the result of blood culture positive. The Odds Ratio of central line placement duration to BCP is eβ = e^0.0153 = 1.015.
-
-This indicates that: An increase of 1 day in the central line placement period is associated with an increase of 1.5% in the odds of blood culture positive, adjusting for TPN, age, and gender.
 
 ?For the predictor `age`, the p-value 0.0559 is slightly bigger than 0.05 which indicates that it is not statistically significant. Our model suggests that the age of the patient does not significantly impact the result of blood culture positive. The exponentiated coefficient for the age variable in patients of getting BCP is eβ = e^-0.0085 = 0.992.
 
@@ -236,4 +233,27 @@ Discussion, final evaluation
 May look at the interaction term for age and gender?
 normality assumption
 report the r square : how much the variability 
+take out duration variable
 
+something else to do:
+a table 
+a column for cases and for control
+gender, age, mean age, p value, 
+tpn cases vs controls
+package gtsummary to look at simple p-values
+
+chi-square and t test for each one
+p-values for each one
+no need to do interaction
+
+put in a univariate analysis
+
+discussion section: 
+very small summary of main results, another pgraph for why you choose the design and the burden, pgraph how you interpret the findings, did not need to be significant, but why (not enough tpn people), suprised by why age and gender not associated with the outcome..
+
+limitation: 
+are we sure we capture every measure correctly
+
+talk about future studies what can be done
+
+english idiom
