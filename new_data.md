@@ -385,7 +385,7 @@ positive.
 ### Regular Logistic Regression Model (will not use)
 
 ``` r
-mylogit <- glm(new_bcp_status ~  duration + age + sex_c, data = join_tpn, family = "binomial")
+mylogit <- glm(new_bcp_status ~  duration + age + sex_c , data = join_tpn, family = "binomial")
 ```
 
 ``` r
@@ -433,8 +433,7 @@ git config –global http.version HTTP/1.1
 
 ------------------------------------------------------------------------
 
-Verification of assumptions, model diagnostics, forward selection model
-Discussion, final evaluation
+model diagnostics, forward selection model Discussion, final evaluation
 
 May look at the interaction term for age and gender? normality
 assumption report the r square : how much the variability

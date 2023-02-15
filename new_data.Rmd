@@ -224,7 +224,7 @@ Gender is not a significant covariate in the relationship of getting blood cultu
 
 ### Regular Logistic Regression Model (will not use)
 ```{r}
-mylogit <- glm(new_bcp_status ~  duration + age + sex_c, data = join_tpn, family = "binomial")
+mylogit <- glm(new_bcp_status ~  duration + age + sex_c , data = join_tpn, family = "binomial")
 ```
 ```{r}
 summary(mylogit)
@@ -235,8 +235,7 @@ confint.default(mylogit)
 git config --global http.version HTTP/1.1
 
 ------------
-
-Verification of assumptions, model diagnostics, forward selection model
+model diagnostics, forward selection model
 Discussion, final evaluation
 
 May look at the interaction term for age and gender?
