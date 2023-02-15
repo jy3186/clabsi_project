@@ -347,87 +347,44 @@ round(OR.CI, 3)
     ## age            0.992 0.983  1.000
     ## sex_c          1.017 0.708  1.461
 
-Test result discussion: For the exposure predictor `new_tpn_status`,
+Test result discussion: For the exposure predictor `new_tpn_status`, the
 p-value 0.2743 is greater than 0.05 which indicates that it is not
 statistically significant. Our model suggests that having total parental
 nutrition does not significantly impact the result of blood culture
 positive. The Odds Ratio of having TPN to BCP is eβ = e^-0.5393 = 1.715.
+
 This indicates that: the odds of having blood culture positive in the
 total parental nutrition group is 1.715 times the odds of having blood
-culture positive in the non total parental nutrition group
+culture positive in the non-total parental nutrition group
 
-For the predictor `duration`, p-value 0.0001 is smaller than 0.05 which
-indicates that it is statistically significant. Our model suggests that
-duration of central lines placement does significantly impact the result
-of blood culture positive. The Odds Ratio of central line placement
-duration to BCP is eβ = e^0.0153 = 1.015. This indicates that: An
-increase of 1 day in central line placement period is associated with an
-increase of 1.5% in the odds of blood culture positive, adjusting for
-tpn, age and gender.
+For the predictor `duration`, the p-value 0.0001 is smaller than 0.05
+which indicates that it is statistically significant. Our model suggests
+that the duration of central lines placement does significantly impact
+the result of blood culture positive. The Odds Ratio of central line
+placement duration to BCP is eβ = e^0.0153 = 1.015.
 
-?For the predictor `age`, p-value 0.0559 is slightly bigger than 0.05
-which indicates that it is not statistically significant. Our model
-suggests that the age of patient does not significantly impact the
-result of blood culture positive. The exponentiated coefficient for age
-variable in patients of getting BCP is eβ = e^-0.0085 = 0.992. This
-indicates that: For every one year increase in age, the odds of
+This indicates that: An increase of 1 day in the central line placement
+period is associated with an increase of 1.5% in the odds of blood
+culture positive, adjusting for TPN, age, and gender.
+
+?For the predictor `age`, the p-value 0.0559 is slightly bigger than
+0.05 which indicates that it is not statistically significant. Our model
+suggests that the age of the patient does not significantly impact the
+result of blood culture positive. The exponentiated coefficient for the
+age variable in patients of getting BCP is eβ = e^-0.0085 = 0.992.
+
+This indicates that: For every one-year increase in age, the odds of
 central-lined patients getting blood culture positive decrease by 0.8%,
-adjusting for tpn, duration and gender.
+adjusting for TPN, duration, and gender.
 
-For the predictor `sex_c`, p-value 0.9284 is greater than 0.05 which
+For the predictor `sex_c`, the p-value 0.9284 is greater than 0.05 which
 indicates that it is not statistically significant. Our model suggests
 that gender does significantly impact the result of blood culture
 positive. The Odds Ratio of being a female and getting BCP compares to
-being a male and getting BCP is eβ = e^0.0166 = 1.017. Gender is not a
-significant covariate in the relationship of getting blood culture
-positive.
+being a male and getting BCP is eβ = e^0.0166 = 1.017.
 
-### Regular Logistic Regression Model (will not use)
-
-``` r
-mylogit <- glm(new_bcp_status ~  duration + age + sex_c , data = join_tpn, family = "binomial")
-```
-
-``` r
-summary(mylogit)
-```
-
-    ## 
-    ## Call:
-    ## glm(formula = new_bcp_status ~ duration + age + sex_c, family = "binomial", 
-    ##     data = join_tpn)
-    ## 
-    ## Deviance Residuals: 
-    ##      Min        1Q    Median        3Q       Max  
-    ## -2.25437  -1.11889   0.03149   1.18570   1.45696  
-    ## 
-    ## Coefficients:
-    ##              Estimate Std. Error z value Pr(>|z|)    
-    ## (Intercept)  0.510515   0.279301   1.828 0.067574 .  
-    ## duration     0.011055   0.003199   3.456 0.000549 ***
-    ## age         -0.011870   0.002952  -4.021  5.8e-05 ***
-    ## sex_c        0.039084   0.121087   0.323 0.746864    
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-    ## 
-    ## (Dispersion parameter for binomial family taken to be 1)
-    ## 
-    ##     Null deviance: 1626.1  on 1172  degrees of freedom
-    ## Residual deviance: 1580.5  on 1169  degrees of freedom
-    ##   (17 observations deleted due to missingness)
-    ## AIC: 1588.5
-    ## 
-    ## Number of Fisher Scoring iterations: 5
-
-``` r
-confint.default(mylogit)
-```
-
-    ##                    2.5 %       97.5 %
-    ## (Intercept) -0.036903909  1.057934674
-    ## duration     0.004785316  0.017325640
-    ## age         -0.017656512 -0.006083756
-    ## sex_c       -0.198242036  0.276410400
+Gender is not a significant covariate in the relationship of getting
+blood culture positive.
 
 git config –global http.version HTTP/1.1
 

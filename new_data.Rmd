@@ -209,29 +209,24 @@ round(OR.CI, 3)
 ```
 
 Test result discussion:
-For the exposure predictor `new_tpn_status`, p-value 0.2743 is greater than 0.05 which indicates that it is not statistically significant. Our model suggests that having total parental nutrition does not significantly impact the result of blood culture positive. The Odds Ratio of having TPN to BCP is eβ = e^-0.5393 = 1.715.
-This indicates that: the odds of having blood culture positive in the total parental nutrition group is 1.715 times the odds of having blood culture positive in the non total parental nutrition group
+For the exposure predictor `new_tpn_status`, the p-value 0.2743 is greater than 0.05 which indicates that it is not statistically significant. Our model suggests that having total parental nutrition does not significantly impact the result of blood culture positive. The Odds Ratio of having TPN to BCP is eβ = e^-0.5393 = 1.715.
 
-For the predictor `duration`, p-value 0.0001 is smaller than 0.05 which indicates that it is statistically significant. Our model suggests that duration of central lines placement does significantly impact the result of blood culture positive. The Odds Ratio of central line placement duration to BCP is eβ = e^0.0153 = 1.015.
-This indicates that: An increase of 1 day in central line placement period is associated with an increase of 1.5% in the odds of blood culture positive, adjusting for tpn, age and gender.
+This indicates that: the odds of having blood culture positive in the total parental nutrition group is 1.715 times the odds of having blood culture positive in the non-total parental nutrition group
 
-?For the predictor `age`, p-value 0.0559 is slightly bigger than 0.05 which indicates that it is not statistically significant. Our model suggests that the age of patient does not significantly impact the result of blood culture positive. The exponentiated coefficient for age variable in patients of getting BCP is eβ = e^-0.0085 = 0.992.
-This indicates that: For every one year increase in age, the odds of central-lined patients getting blood culture positive decrease by 0.8%, adjusting for tpn, duration and gender.
+For the predictor `duration`, the p-value 0.0001 is smaller than 0.05 which indicates that it is statistically significant. Our model suggests that the duration of central lines placement does significantly impact the result of blood culture positive. The Odds Ratio of central line placement duration to BCP is eβ = e^0.0153 = 1.015.
 
-For the predictor `sex_c`, p-value 0.9284 is greater than 0.05 which indicates that it is not statistically significant. Our model suggests that gender does significantly impact the result of blood culture positive. The Odds Ratio of being a female and getting BCP compares to being a male and getting BCP is eβ = e^0.0166 = 1.017.
+This indicates that: An increase of 1 day in the central line placement period is associated with an increase of 1.5% in the odds of blood culture positive, adjusting for TPN, age, and gender.
+
+?For the predictor `age`, the p-value 0.0559 is slightly bigger than 0.05 which indicates that it is not statistically significant. Our model suggests that the age of the patient does not significantly impact the result of blood culture positive. The exponentiated coefficient for the age variable in patients of getting BCP is eβ = e^-0.0085 = 0.992.
+
+This indicates that: For every one-year increase in age, the odds of central-lined patients getting blood culture positive decrease by 0.8%, adjusting for TPN, duration, and gender.
+
+For the predictor `sex_c`, the p-value 0.9284 is greater than 0.05 which indicates that it is not statistically significant. Our model suggests that gender does significantly impact the result of blood culture positive. The Odds Ratio of being a female and getting BCP compares to being a male and getting BCP is eβ = e^0.0166 = 1.017.
+
 Gender is not a significant covariate in the relationship of getting blood culture positive. 
 
 
-### Regular Logistic Regression Model (will not use)
-```{r}
-mylogit <- glm(new_bcp_status ~  duration + age + sex_c , data = join_tpn, family = "binomial")
-```
-```{r}
-summary(mylogit)
-```
-```{r}
-confint.default(mylogit)
-```
+
 git config --global http.version HTTP/1.1
 
 ------------
