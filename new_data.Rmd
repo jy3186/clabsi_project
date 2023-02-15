@@ -209,7 +209,7 @@ round(OR.CI, 3)
 ```
 
 Test result discussion:
-For the exposure predictor `new_tpn_status`, the p-value 0.2743 is greater than 0.05 which indicates that it is not statistically significant. Our model suggests that having total parental nutrition does not significantly impact the result of blood culture positive. The Odds Ratio of having TPN to BCP is eβ = e^-0.5393 = 1.715.
+For the exposure predictor `new_tpn_status`, the p-value 0.2743 is greater than 0.05 which indicates that it is not statistically significant. Our model suggests that having total parental nutrition does not significantly impact the result of blood culture positive. The Odds Ratio of having blood culture positive in having TPN compared to non-TPN is eβ = e^-0.5393 = 1.715.
 
 This indicates that: the odds of having blood culture positive in the total parental nutrition group is 1.715 times the odds of having blood culture positive in the non-total parental nutrition group
 
