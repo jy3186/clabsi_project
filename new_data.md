@@ -9,8 +9,6 @@ library(survival)
 library(gtsummary)
 ```
 
-    ## #Uighur
-
 import the new data
 
 ``` r
@@ -1286,32 +1284,29 @@ round(OR.CI, 3)
     ## sex_c          1.010 0.709  1.438
 
 Test result discussion: For the exposure predictor `new_tpn_status`, the
-p-value 0.2743 is greater than 0.05 which indicates that it is not
+p-value 0.1124 is greater than 0.05 which indicates that it is not
 statistically significant. Our model suggests that having total parental
 nutrition does not significantly impact the result of blood culture
 positive. The Odds Ratio of having blood culture positive in having TPN
-compared to non-TPN is eβ = e^-0.5393 = 1.715, with a 95% CI (0.652,
-4.509).
+compared to non-TPN is eβ = e^0.7717 = 2.163, with a 95% CI (0.834,
+5.610).
 
-This indicates that: the odds of having blood culture positive in the
-total parental nutrition group is 1.715 times the odds of having blood
-culture positive in the non-total parental nutrition group
+## This indicates that: the odds of having blood culture positive in the total parental nutrition group is 2.163 times the odds of having blood culture positive in the non-total parental nutrition group
 
-?For the predictor `age`, the p-value 0.0559 is slightly bigger than
-0.05 which indicates that it is not statistically significant. Our model
-suggests that the age of the patient does not significantly impact the
-result of blood culture positive. The exponentiated coefficient for the
-age variable in patients of getting BCP is eβ = e^-0.0085 = 0.992.
+For the predictor `age`, the p-value 0.0162 is less than 0.05 which
+indicates that it is statistically significant. Our model suggests that
+the age of the patient significantly impacts the result of blood culture
+positive. The exponentiated coefficient for the age variable in patients
+of getting BCP is eβ = e^-0.0103 = 0.990, with a 95% CI (0.982, 0.998).
 
-This indicates that: For every one-year increase in age, the odds of
-central-lined patients getting blood culture positive decrease by 0.8%,
-adjusting for TPN, duration, and gender.
+## This indicates that: For every one-year increase in age, the odds of central-lined patients getting blood culture positive decrease by 1.0%, adjusting for TPN, duration, and gender.
 
-For the predictor `sex_c`, the p-value 0.9284 is greater than 0.05 which
+For the predictor `sex_c`, the p-value 0.9556 is greater than 0.05 which
 indicates that it is not statistically significant. Our model suggests
 that gender does significantly impact the result of blood culture
 positive. The Odds Ratio of being a female and getting BCP compares to
-being a male and getting BCP is eβ = e^0.0166 = 1.017.
+being a male and getting BCP is eβ = e^0.0101 = 1.010, with a 95% CI
+(0.709, 1.438).
 
 Gender is not a significant covariate in the relationship of getting
 blood culture positive.
