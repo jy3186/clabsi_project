@@ -15,6 +15,7 @@ library(ggplot2)
 ```{r}
 library("MatchIt")
 library(survival)
+library(gtsummary)
 ```
 
 
@@ -107,6 +108,7 @@ We have 595 cases and 1840 unique controls to pool from. `full_table2` is the fu
 
 Matching by variable `matching_period` which stands for the time between central line placement and tested blood culture positive
 
+### Matching
 by MatchIt:
 ```{r}
 full_table3 = full_table2 %>% 
@@ -141,21 +143,6 @@ df.match
 df.match has 1190 observations include 595 cases and 595 controls
 
 
-demographic analysis: age, gender
-1 is female, 2 is male.
-...
-
-```{r}
-
-ggplot(aes(x = sex_c), data=subset(df.match, !is.na(sex_c)), color = sex_c) +
-  geom_histogram(binwidth=30) + labs(
-    title = "Distribution of gender",
-    x = "gender",
-    y = "count"
-  ) +
-  facet_grid(. ~sex_c) 
-
-```
 
 Look at the exposure TPN status
 Next, we look at TPN data
@@ -190,6 +177,40 @@ tpn_table
 ```
 This is the 2*2 table of exposure on the left, outcome on the right.
 OR = ad/bc = 0.8969
+
+## Table and Univariate Analysis
+```{r}
+head(join_tpn)
+
+#for simplicity select only sex_c, new_bcp_status, and age
+trial <- join_tpn %>% 
+  select(new_bcp_status, sex_c, age) %>% 
+  mutate(
+    new_bcp_status = as.factor(new_bcp_status),
+    sex_c = as.factor(sex_c)
+  )
+trial %>% tbl_summary()
+```
+```{r}
+trial %>%
+  tbl_summary(by = sex_c) %>%
+  add_p()
+```
+### Demographic analysis: age, gender
+1 is female, 2 is male.
+...
+
+```{r}
+
+ggplot(aes(x = sex_c), data=subset(df.match, !is.na(sex_c)), color = sex_c) +
+  geom_histogram(binwidth=30) + labs(
+    title = "Distribution of gender",
+    x = "gender",
+    y = "count"
+  ) +
+  facet_grid(. ~sex_c) 
+
+```
 
 ## Conditional logistic regression
 
