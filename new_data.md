@@ -323,13 +323,16 @@ head(join_tpn)
     ## #   ¹​new_bcp_status
 
 ``` r
+join_tpn$sex_c[join_tpn$sex_c == "1"] <- "Female"
+join_tpn$sex_c[join_tpn$sex_c == "2"] <- "Male"
 #for simplicity select only sex_c, new_bcp_status, and age
 trial <- join_tpn %>% 
   select(new_bcp_status, sex_c, age) %>% 
   mutate(
     new_bcp_status = as.factor(new_bcp_status),
     sex_c = as.factor(sex_c)
-  )
+  ) 
+
 trial %>% tbl_summary()
 ```
 
@@ -761,9 +764,9 @@ trial %>% tbl_summary()
 <td headers="stat_0" class="gt_row gt_center">595 (50%)</td></tr>
     <tr><td headers="label" class="gt_row gt_left">sex_c</td>
 <td headers="stat_0" class="gt_row gt_center"></td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    1</td>
+    <tr><td headers="label" class="gt_row gt_left">    Female</td>
 <td headers="stat_0" class="gt_row gt_center">487 (41%)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    2</td>
+    <tr><td headers="label" class="gt_row gt_left">    Male</td>
 <td headers="stat_0" class="gt_row gt_center">703 (59%)</td></tr>
     <tr><td headers="label" class="gt_row gt_left">age</td>
 <td headers="stat_0" class="gt_row gt_center">65 (51, 75)</td></tr>
@@ -1199,8 +1202,8 @@ trial %>%
   <thead class="gt_col_headings">
     <tr>
       <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1" scope="col" id="&lt;strong&gt;Characteristic&lt;/strong&gt;"><strong>Characteristic</strong></th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="&lt;strong&gt;1&lt;/strong&gt;, N = 487&lt;sup class=&quot;gt_footnote_marks&quot;&gt;1&lt;/sup&gt;"><strong>1</strong>, N = 487<sup class="gt_footnote_marks">1</sup></th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="&lt;strong&gt;2&lt;/strong&gt;, N = 703&lt;sup class=&quot;gt_footnote_marks&quot;&gt;1&lt;/sup&gt;"><strong>2</strong>, N = 703<sup class="gt_footnote_marks">1</sup></th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="&lt;strong&gt;Female&lt;/strong&gt;, N = 487&lt;sup class=&quot;gt_footnote_marks&quot;&gt;1&lt;/sup&gt;"><strong>Female</strong>, N = 487<sup class="gt_footnote_marks">1</sup></th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="&lt;strong&gt;Male&lt;/strong&gt;, N = 703&lt;sup class=&quot;gt_footnote_marks&quot;&gt;1&lt;/sup&gt;"><strong>Male</strong>, N = 703<sup class="gt_footnote_marks">1</sup></th>
       <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="&lt;strong&gt;p-value&lt;/strong&gt;&lt;sup class=&quot;gt_footnote_marks&quot;&gt;2&lt;/sup&gt;"><strong>p-value</strong><sup class="gt_footnote_marks">2</sup></th>
     </tr>
   </thead>
@@ -1270,7 +1273,7 @@ round(summary(fit.clr)$coef, 4)
     ##                   coef exp(coef) se(coef)       z Pr(>|z|)
     ## new_tpn_status  0.7717    2.1633   0.4861  1.5873   0.1124
     ## age            -0.0103    0.9898   0.0043 -2.4043   0.0162
-    ## sex_c           0.0101    1.0101   0.1804  0.0557   0.9556
+    ## sex_cMale       0.0101    1.0101   0.1804  0.0557   0.9556
 
 ``` r
 OR.CI <- cbind("OR" = exp(coef(fit.clr)),
@@ -1281,7 +1284,7 @@ round(OR.CI, 3)
     ##                   OR 2.5 % 97.5 %
     ## new_tpn_status 2.163 0.834  5.610
     ## age            0.990 0.982  0.998
-    ## sex_c          1.010 0.709  1.438
+    ## sex_cMale      1.010 0.709  1.438
 
 Test result discussion:
 

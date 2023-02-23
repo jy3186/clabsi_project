@@ -181,14 +181,16 @@ OR = ad/bc = 0.8969
 ## Table and Univariate Analysis
 ```{r}
 head(join_tpn)
-
+join_tpn$sex_c[join_tpn$sex_c == "1"] <- "Female"
+join_tpn$sex_c[join_tpn$sex_c == "2"] <- "Male"
 #for simplicity select only sex_c, new_bcp_status, and age
 trial <- join_tpn %>% 
   select(new_bcp_status, sex_c, age) %>% 
   mutate(
     new_bcp_status = as.factor(new_bcp_status),
     sex_c = as.factor(sex_c)
-  )
+  ) 
+
 trial %>% tbl_summary()
 ```
 ```{r}
@@ -196,12 +198,12 @@ trial %>%
   tbl_summary(by = sex_c) %>%
   add_p()
 ```
+
 ### Demographic analysis: age, gender
 1 is female, 2 is male.
 ...
 
 ```{r}
-
 ggplot(aes(x = sex_c), data=subset(df.match, !is.na(sex_c)), color = sex_c) +
   geom_histogram(binwidth=30) + labs(
     title = "Distribution of gender",
@@ -209,7 +211,6 @@ ggplot(aes(x = sex_c), data=subset(df.match, !is.na(sex_c)), color = sex_c) +
     y = "count"
   ) +
   facet_grid(. ~sex_c) 
-
 ```
 
 ## Conditional logistic regression
