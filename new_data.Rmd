@@ -195,7 +195,7 @@ trial %>% tbl_summary()
 ```
 ```{r}
 trial %>%
-  tbl_summary(by = sex_c) %>%
+  tbl_summary(by = new_bcp_status) %>%
   add_p()
 ```
 
