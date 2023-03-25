@@ -2,7 +2,7 @@
 title: "New Data Analysis"
 author: "Jiayi Yang"
 date: "2022-11-16"
-output: github_document
+output: pdf_document
 ---
 ```{r setup, include=FALSE}
 library(tidyverse)
@@ -16,6 +16,7 @@ library(ggplot2)
 library("MatchIt")
 library(survival)
 library(gtsummary)
+
 ```
 
 
@@ -251,6 +252,7 @@ Gender is not a significant covariate in the relationship of getting blood cultu
 git config --global http.version HTTP/1.1
 
 ------------
+Notes:
 model diagnostics, forward selection model
 Discussion, final evaluation
 
