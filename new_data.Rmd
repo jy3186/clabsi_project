@@ -2,7 +2,7 @@
 title: "New Data Analysis"
 author: "Jiayi Yang"
 date: "2022-11-16"
-output: pdf_document
+output: github_document
 ---
 ```{r setup, include=FALSE}
 library(tidyverse)
@@ -46,8 +46,14 @@ new_data =
   filter(removal_date != '2157-11-19')
 
 new_data
-new_data2 = new_data[!duplicated(new_data$EMPI), ] 
+new_data2 = new_data[!duplicated(new_data$EMPI), ] %>% drop_na()
+duration_sum <- aggregate(new_data2$duration, by = list(new_data2$EMPI), FUN = sum)
+str_remove(duration_sum$x,"days")
+duration_sum$x <- as.numeric(duration_sum$x) 
+sum_days = sum(duration_sum$x) 
+sum_days
 ```
+Total number of catheter-days (i.e. the total number of days that catheters were in place): 38071 days
 
 We have `r nrow(new_data)` patients who have central lines inserted in our sample
 
@@ -94,6 +100,10 @@ table(join_test2$new_bcp_status)
 Great, we found 595 observations of patients who have blood culture positive within their periods of central line inserted. 
 
 The incidence for blood culture positive in central lined patients are 595/6754 = 8.8%
+
+The incidence as per catheter-day in central venous catheter (CVC) patients: the total number of events (e.g. infections or complications) is divided by the total number of catheter-days (i.e. the total number of days that catheters were in place) and then multiplied by a factor of 1000 to express the result as the number of events per 1000 catheter-days
+(595/38071)*1000 = 15.63 infections per 1000 catheter-days.
+This means that there were 15.63 bloodstream infections for every 1000 catheter-days that the catheters were in place.
 
 Now we try to match controls to cases by first full join the bcp_status table (join_test2) with our original new_data table:
 ```{r}
