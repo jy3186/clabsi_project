@@ -9,6 +9,8 @@ library(survival)
 library(gtsummary)
 ```
 
+    ## #BlackLivesMatter
+
 import the new data
 
 ``` r

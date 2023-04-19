@@ -2,7 +2,7 @@
 title: "New Data Analysis"
 author: "Jiayi Yang"
 date: "2022-11-16"
-output: github_document
+output: html_document
 ---
 ```{r setup, include=FALSE}
 library(tidyverse)
@@ -16,7 +16,7 @@ library(ggplot2)
 library("MatchIt")
 library(survival)
 library(gtsummary)
-
+library(kableExtra)
 ```
 
 
@@ -208,6 +208,7 @@ trial %>% tbl_summary()
 trial %>%
   tbl_summary(by = new_bcp_status) %>%
   add_p()
+
 ```
 
 ### Demographic analysis: age, gender
@@ -235,11 +236,46 @@ fit.clr <- clogit(new_bcp_status ~ new_tpn_status + age + sex_c + strata(new_mat
 round(summary(fit.clr)$coef, 4)
 ```
 
+
 ```{r}
 OR.CI <- cbind("OR" = exp(coef(fit.clr)),
                exp(confint(fit.clr)))
 round(OR.CI, 3)
 ```
+```{r}
+# create a data frame with variables of interest
+vars <- c("new_tpn_status", "age", "sex_c")
+labels <- c("TPN", "Age (per additional year)", "Male sex")
+df <- data.frame(vars, labels)
+
+# fit the model
+fit.clr <- clogit(new_bcp_status ~ new_tpn_status + age + sex_c + strata(new_matching_period), data = join_tpn)
+
+# calculate odds ratios and CIs
+ORs <- exp(coef(fit.clr))
+CI_lower <- exp(confint(fit.clr)[,1])
+CI_upper <- exp(confint(fit.clr)[,2])
+P_values <- summary(fit.clr)$coefficients[,5]
+
+# create a table
+table <- data.frame(
+  Variable = df$labels,
+  OR = round(ORs, 3),
+  `95%CI` = paste0("(", round(CI_lower, 3), ", ", round(CI_upper, 3), ")"),
+  `P value` = round(P_values, 3)
+)
+
+# set row names
+rownames(table) <- df$vars
+
+# print the table
+print(table)
+# add a label
+kable(table, caption = "Conditional Logistic Regression Results") %>%
+  kable_styling(full_width = FALSE)
+
+```
+
 
 Test result discussion:
 
